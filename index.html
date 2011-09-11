@@ -1,0 +1,68 @@
+<html>
+
+  <head>
+    <link rel="stylesheet" type="text/css" href="../style.css" />
+    <script src="xbps.js"></script>
+    <script src="orbitcam.js"></script>
+    <script src="sylvester.js"></script> 
+    <script src="glUtils.js"></script> 
+    <script src="picking.js"></script>
+  </head>
+
+  <!-- <body oncontextmenu="return false;" onLoad="start();" bgcolor="#222222"> -->
+  <body oncontextmenu="return false;" bgcolor="#222222"> 
+
+	  <!-- <span id="fileStatus"></span><br /> -->
+
+	  <input type='file' id='fileinput' value='' onchange='start();'><br>
+
+    <canvas id="canvas" width="800" height="500"></canvas><br />
+
+    <!--    <span>Invert scroll wheel:</span><input type="checkbox" id="invertScroll" /> -->
+
+    <span id="debug"></span>
+
+  </body>
+
+</html>
+
+<script>
+     function loadFile() {
+        var input, file, fr;
+
+        if (typeof window.FileReader !== 'function') {
+            bodyAppend("p", "The file API isn't supported on this browser yet.");
+            return;
+        }
+
+        input = document.getElementById('fileinput');
+
+	/*
+        if (!input) {
+            bodyAppend("p", "Um, couldn't find the fileinput element.");
+        }
+        else if (!input.files) {
+            bodyAppend("p", "This browser doesn't seem to support the `files` property of file inputs.");
+        }
+        else if (!input.files[0]) {
+            bodyAppend("p", "Please select a file before clicking 'Load'");
+        }
+	*/
+
+            file = input.files[0];
+
+            fr = new FileReader();
+	    fr.onload = function() {showResult(fr)};
+
+            fr.readAsText(file);
+
+	    //fr.readAsBinaryString(file);
+
+    }
+
+    function showResult(fr) {
+        //result = fr.result;
+	//document.write("<pre>" + result + "</pre>");
+	console.log(fr.result.charAt(1));
+    }
+</script>
