@@ -127,7 +127,10 @@ var PTSParser = (function() {
        *      We then insert partialData in front of next chunk 
        *
        */
-      var partialData = '';  
+      var partialData;  
+      var data;
+      var rawData;
+      var lastNLIndex;
 
       function loadNext() {
         var start, end,
@@ -136,21 +139,22 @@ var PTSParser = (function() {
         start = _chunk * chunkSize;
         end = start + chunkSize >= file.size ? file.size : start + chunkSize;
 	
-        //FR.onloadstart = function(e){
-        //    start(FR.parser);
-        //};
+        FR.onloadstart = function(e){
+            start(FR.parser);
+        };
 
         FR.onload = function(e) {      
           if (++_chunk <= chunks) {
 
-	     var rawData = FR.result;
-	     var lastNLIndex = rawData.lastIndexOf('\n');
+	     rawData = FR.result;
+	     lastNLIndex = rawData.lastIndexOf('\n');
 
 	     //console.log('partial = ' + partialData);        // debugging - previous chunk's incomplete last line
 	     
-	     var data = partialData + rawData.slice(0, lastNLIndex);
+	     data = partialData + rawData.slice(0, lastNLIndex);
              
 	     FR.parseChunk(data);
+
              numTotalPoints = numParsedPoints;
              progress = 0.5;
 
@@ -160,20 +164,22 @@ var PTSParser = (function() {
 	     //console.log('full   = ' + data.slice(0,i));      // debugging
 
              loadNext(); // shortcut here
+
+	     data = null;
           }
+	  else {
+	    end(FR.parser);
+	  }
         };
 
         FR.parseChunk = function(chunk){
-            //var chunk = chunkData;
-            
+		
+
             // this occurs over network connections, but not locally.
             if(chunk !== ""){
               
               numPoints = chunk.match(/^[0-9]+\n/);
               numTotalPoints += parseInt(numPoints);
-
-              // get rid of the point count to simplify the rest of the parsing
-              chunk = chunk.replace(/^[0-9\s]+\n/, "");
 
               // trim trailing spaces
               chunk = chunk.replace(/\s+$/,"");
@@ -183,23 +189,22 @@ var PTSParser = (function() {
 
               // sam
               // find out how many columns per line
-              var firstline = chunk.split(/\n/, 1);
-              var numActualColumns = firstline[0].split(" ").length;
+              //var firstline = chunk.split(/\n/, 1);
+              //var numActualColumns = firstline[0].split(" ").length;
 
               // split on white space
               chunk = chunk.split(/\s+/);
 
-              const numValuesPerLine = numActualColumns;
+              const numValuesPerLine = 7;	// numActualColumns;
               var numVerts = chunk.length/numValuesPerLine;
               numParsedPoints += numVerts;
               
               //invalid arguments
               var verts = new Float32Array(numVerts * 3);
-              var cols =  new Float32Array(numVerts * 3);
+              //var cols =  new Float32Array(numVerts * 3);    
+	      var cols = new Uint8Array(numVerts * 3);
 
               var intensity;
-
-              //console.log('chunk.length = ' + chunk.length);
 
               // x y z  intensity r g b
               for(var i = 0, j = 0; i < chunk.length; i += numValuesPerLine, j += 3){
@@ -207,35 +212,36 @@ var PTSParser = (function() {
                 verts[j+1] = parseFloat(chunk[i+1]);
                 verts[j+2] = parseFloat(chunk[i+2]);
 
-                switch (numActualColumns) {
-			case 7: // color
-					cols[j]   = parseInt(chunk[i+4])/255;
-					cols[j+1] = parseInt(chunk[i+5])/255;
-					cols[j+2] = parseInt(chunk[i+6])/255;
-				break;
+		cols[j]   = parseInt(chunk[i+4]);
+		cols[j+1] = parseInt(chunk[i+5]);
+		cols[j+2] = parseInt(chunk[i+6]);
 
-			case 4: // intensity
-				intensity = parseFloat(chunk[i+3]);
-				intensity = (intensity+2048)/4096;
+                //switch (numActualColumns) {
+		//	case 7: // color
+		//			cols[j]   = parseInt(chunk[i+4])/255;
+		//			cols[j+1] = parseInt(chunk[i+5])/255;
+		//			cols[j+2] = parseInt(chunk[i+6])/255;
+		//		break;
 
-				cols[j]   = intensity < 0.5 ? (-510*intensity+255)/255 : 0;
+		//	case 4: // intensity
+		//		intensity = parseFloat(chunk[i+3]);
+		//		intensity = (intensity+2048)/4096;
 
-				var fTmp = -1*Math.pow(50*(intensity-0.5),2) + 255;
-				cols[j+1] = fTmp < 0 ? 0 : fTmp/255;
+		//		cols[j]   = intensity < 0.5 ? (-510*intensity+255)/255 : 0;
 
-				cols[j+2] = intensity > 0.5 ? (510*intensity+255)/255 : 0;
-				break;
+		//		var fTmp = -1*Math.pow(50*(intensity-0.5),2) + 255;
+		//		cols[j+1] = fTmp < 0 ? 0 : fTmp/255;
 
-			default: // fixed intensity
-				cols[j]   = 0;
-				cols[j+1] = 128;
-				cols[j+2] = 0;
-                }
+		//		cols[j+2] = intensity > 0.5 ? (510*intensity+255)/255 : 0;
+		//		break;
+
+		//	default: // fixed intensity
+		//		cols[j]   = 0;
+		//		cols[j+1] = 128;
+		//		cols[j+2] = 0;
+                //}
               }
                     
-              // XB PointStream expects an object with named/value pairs
-              // which contain the attribute arrays. These must match attribute
-              // names found in the shader
               var attributes = {};
               if(verts){attributes["ps_Vertex"] = verts;}
               if(cols){attributes["ps_Color"] = cols;}
@@ -250,12 +256,6 @@ var PTSParser = (function() {
       }
 
       loadNext();
-
-      //FR.readAsText(file);
-
-      //var slicedFile = file.webkitSlice(0, 80*1000000);
-      //FR.readAsText(slicedFile);
-      //FR.readAsArrayBuffer(slicedFile);
 
     };// load
 

@@ -52,7 +52,7 @@ var PointStream = (function() {
     
     var registeredParsers = {};
     //registeredParsers["asc"] = ASCParser;
-    registeredParsers["psi"] = PSIParser;
+    //registeredParsers["psi"] = PSIParser;
     registeredParsers["pts"] = PTSParser;
     //registeredParsers["ply"] = PLYParser;
     
@@ -222,7 +222,12 @@ var PointStream = (function() {
       var varLocation = ctx.getAttribLocation(programObj, varName);
       if (varLocation !== -1) {
         ctx.bindBuffer(ctx.ARRAY_BUFFER, VBO);
-        ctx.vertexAttribPointer(varLocation, size, ctx.FLOAT, false, 0, 0);
+
+	if (varName.indexOf('Color') < 0)
+          ctx.vertexAttribPointer(varLocation, size, ctx.FLOAT, false, 0, 0);  // vertices
+	else
+          ctx.vertexAttribPointer(varLocation, size, ctx.UNSIGNED_BYTE, true, 0, 0);  // colors
+
         ctx.enableVertexAttribArray(varLocation);
       }
     }
@@ -515,8 +520,6 @@ var PointStream = (function() {
       var parserIndex = getParserIndex(parser);
       var pc = pointClouds[parserIndex];
 
-      //debugger;
-      
       pc.status = STREAMING;
       pc.progress = parser.progress;
       pc.numPoints = parser.numParsedPoints;
@@ -942,18 +945,19 @@ var PointStream = (function() {
                 We iterate over each set of vertex vbo, enabling
                 the corresponding attributes which exist.
               */
-              if(pointCloud.attributes[semantics[name]][currVBO]){
-                vertexAttribPointer(currProgram, semantics[name], 3, pointCloud.attributes[semantics[name]][currVBO].VBO);
-              }
+                if(pointCloud.attributes[semantics[name]][currVBO]){
+                  vertexAttribPointer(currProgram, semantics[name], 3, pointCloud.attributes[semantics[name]][currVBO].VBO);
+                }
             }
             ctx.drawArrays(ctx.POINTS, 0, arrayOfBufferObjsV[currVBO].length/3);
             
             // If we render a point cloud with vertices and colors, then 
             // another one with only vertices, this may cause issues if we
             // don't disabled all the current attributes after each draw.
-            for(var name in semantics){
-              disableVertexAttribPointer(currProgram, semantics[name]);
-            }
+	    //
+            for(var name in semantics){                                       // commented out by Sam
+              disableVertexAttribPointer(currProgram, semantics[name]);	// commented out by Sam
+            }// commented out by Sam 
             
           }
         }
