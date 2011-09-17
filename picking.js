@@ -1,4 +1,6 @@
-var ps, lobby;
+var ps;
+
+var lion;
 
 // Create an orbit camera halfway between the closest and farthest point
 var cam = new OrbitCam({closest:1, farthest:100, distance: 10});
@@ -53,7 +55,25 @@ function keyDown(){
     ps.stop("/clouds/parking-lot.pts");
   }
 
-  if (ps.key == 48) isInPickMode = true;
+  //if (ps.key == 48) isInPickMode = true;
+
+  // test set color
+  if (ps.key==48) {
+    var numChunks = lion.attributes["ps_Color"].length;
+
+    for (var i=0; i < numChunks; i++) {
+       var lenArray = lion.attributes["ps_Color"][i].array.length;
+       var cols = new Uint8Array(lenArray);
+
+       for (var j=0; j<lenArray; j+=3) {
+          cols[j] = 0;
+          cols[j+1] = 250;
+          cols[j+2] = 0;
+       }
+       lion.attributes["ps_Color"][i].array = cols;
+    }
+  }
+
   if (ps.key == 49) cam.setPosition( [10, 0, 0] ); // 1
   if (ps.key == 50) cam.setPosition( [0, 0, 10] ); // 2
   if (ps.key == 51) cam.setPosition( [-10, 0, 0] ); // 3
@@ -104,7 +124,12 @@ function render() {
   ps.translate(-cam.position[0]-c[0], -cam.position[1]-c[1], -cam.position[2]-c[2]);
 
   ps.clear();
+
   ps.render(lion);
+
+
+  //console.log(lion.attributes["ps_Color"][0].length);
+
 }
 
 function start(){

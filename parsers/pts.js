@@ -108,7 +108,7 @@ var PTSParser = (function() {
       //  end(FR.parser);
       //}
       
-      var chunkSize = 1024*1024*2,
+      var chunkSize = 1024*1024*1,
       chunks = Math.ceil(file.size / chunkSize),
       _chunk = 0;
 
@@ -167,9 +167,9 @@ var PTSParser = (function() {
 
 	     data = null;
           }
-	  else {
-	    end(FR.parser);
-	  }
+	  //else {
+	    //end(FR.parser);
+	  //}
         };
 
         FR.parseChunk = function(chunk){
@@ -199,12 +199,11 @@ var PTSParser = (function() {
               var numVerts = chunk.length/numValuesPerLine;
               numParsedPoints += numVerts;
               
-              //invalid arguments
               var verts = new Float32Array(numVerts * 3);
-              //var cols =  new Float32Array(numVerts * 3);    
+              //var cols =  new Float32Array(numVerts * 3);     // color doesn't need Float32
 	      var cols = new Uint8Array(numVerts * 3);
 
-              var intensity;
+              //var intensity;
 
               // x y z  intensity r g b
               for(var i = 0, j = 0; i < chunk.length; i += numValuesPerLine, j += 3){

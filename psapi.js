@@ -150,7 +150,7 @@ var PointStream = (function() {
 
     var fragmentShaderSource =
     "#ifdef GL_ES                 \n" +
-    "  precision lowp float;     \n" +
+    "  precision highp float;     \n" +
     "#endif                       \n" +
                                   
     "varying vec4 frontColor;      " + 
@@ -223,10 +223,11 @@ var PointStream = (function() {
       if (varLocation !== -1) {
         ctx.bindBuffer(ctx.ARRAY_BUFFER, VBO);
 
-	if (varName.indexOf('Color') < 0)
-          ctx.vertexAttribPointer(varLocation, size, ctx.FLOAT, false, 0, 0);  // vertices
-	else
+	if (varName === 'ps_Color')
           ctx.vertexAttribPointer(varLocation, size, ctx.UNSIGNED_BYTE, true, 0, 0);  // colors
+	else {
+          ctx.vertexAttribPointer(varLocation, size, ctx.FLOAT, false, 0, 0);  // vertices
+	}
 
         ctx.enableVertexAttribArray(varLocation);
       }
@@ -264,7 +265,8 @@ var PointStream = (function() {
       if(ctx){
         var VBO = ctx.createBuffer();
         ctx.bindBuffer(ctx.ARRAY_BUFFER, VBO);
-        ctx.bufferData(ctx.ARRAY_BUFFER, arr, ctx.STATIC_DRAW);
+
+        ctx.bufferData(ctx.ARRAY_BUFFER, arr, ctx.DYNAMIC_DRAW);
         
         // length is simply for convenience
         var obj = {
@@ -533,10 +535,11 @@ var PointStream = (function() {
         if(!pc.attributes[semantic]){
           pc.attributes[semantic] = [];
         }
-        
+
         var buffObj = createBufferObject(attributes[semantic]);
         pc.attributes[semantic].push(buffObj);
         
+	/****
         if(gotVertexData === false){
           gotVertexData = true;
           var addedVertices = [0,0,0];
@@ -555,6 +558,7 @@ var PointStream = (function() {
           //pc.center[1] = pc.addedVertices[1] / pc.numPoints;
           //pc.center[2] = pc.addedVertices[2] / pc.numPoints;
         }
+	******/
       }
     }
         
@@ -573,8 +577,8 @@ var PointStream = (function() {
       // Create a short alias.
       var pc = pointClouds[parserIndex];
       
-      pc.status = COMPLETE;
-      pc.progress = parser.progress;
+      //pc.status = COMPLETE;
+      //pc.progress = parser.progress;
     }
     
     /**
@@ -932,8 +936,16 @@ var PointStream = (function() {
 
           // Iterate over all the vertex buffer objects.
           for(var currVBO = 0; currVBO < arrayOfBufferObjsV.length; currVBO++){
+		  
             // iterate over all the semantic names "ps_Vertex", "ps_Normal", etc.
-            for(name in semantics){
+            for (name in semantics){
+
+	      // update color
+	      //if (name == 1) {
+              //  ctx.bindBuffer(ctx.ARRAY_BUFFER, pointCloud.attributes[semantics[name]][currVBO].VBO);
+              //  ctx.bufferSubData(ctx.ARRAY_BUFFER, 0, pointCloud.attributes[semantics[name]][currVBO].array);
+	      //}
+
               /*
                 There is a chance we don't have the correspoding semantic data
                 for this vertex. In that case, we skip it.
@@ -948,6 +960,7 @@ var PointStream = (function() {
                 if(pointCloud.attributes[semantics[name]][currVBO]){
                   vertexAttribPointer(currProgram, semantics[name], 3, pointCloud.attributes[semantics[name]][currVBO].VBO);
                 }
+
             }
             ctx.drawArrays(ctx.POINTS, 0, arrayOfBufferObjsV[currVBO].length/3);
             
@@ -955,9 +968,9 @@ var PointStream = (function() {
             // another one with only vertices, this may cause issues if we
             // don't disabled all the current attributes after each draw.
 	    //
-            for(var name in semantics){                                       // commented out by Sam
-              disableVertexAttribPointer(currProgram, semantics[name]);	// commented out by Sam
-            }// commented out by Sam 
+            //for(var name in semantics){                           
+            //  disableVertexAttribPointer(currProgram, semantics[name]);	
+            //}
             
           }
         }
@@ -1470,14 +1483,23 @@ var PointStream = (function() {
         @private
       */
       window.PSrequestAnimationFrame = (function(){
+
+          return function(callback, cvs){
+            window.setTimeout(callback, 1000.0/20.0); // 20 fps
+          }
+
+	      /*****
         return window.requestAnimationFrame ||
                window.webkitRequestAnimationFrame ||
                window.mozRequestAnimationFrame ||
                window.oRequestAnimationFrame ||
                window.msRequestAnimationFrame ||
+
                function(callback, cvs){
-                 window.setTimeout(callback, 1000.0/60.0);
+                 //window.setTimeout(callback, 1000.0/60.0);
+                 window.setTimeout(callback, 1000);
                };
+	       *****/
       })();
 
       // call the user's render function
@@ -1527,6 +1549,10 @@ var PointStream = (function() {
         }
       }
     };
+
+    this.changeColor = function() {
+       alert('hello test');
+    }
     
     /**
       Begins downloading and parsing a point cloud object.
