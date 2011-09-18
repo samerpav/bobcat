@@ -270,7 +270,7 @@ var PointStream = (function() {
         
         // length is simply for convenience
         var obj = {
-          length: arr.length,
+          length: arr.byteLength/16,
           VBO: VBO,
           array: arr
         };
@@ -525,6 +525,16 @@ var PointStream = (function() {
       pc.status = STREAMING;
       pc.progress = parser.progress;
       pc.numPoints = parser.numParsedPoints;
+      
+      if (!pc.attributes['ps_Vertex']){
+        pc.attributes['ps_Vertex'] = [];
+      }
+
+      var buffObj = createBufferObject(attributes['ps_Vertex']);
+      pc.attributes['ps_Vertex'].push(buffObj);
+
+      return;
+
       
       // assume the first attribute is vertex data
       var gotVertexData = false;
@@ -927,18 +937,32 @@ var PointStream = (function() {
         // Get the list of semantic names.
         var semantics = Object.keys(pointCloud.attributes);
 
-        var firstSemantic = semantics[0];
+        var firstSemantic = semantics[0]; // ps_Vertex
         
         // We need at least positional data.
-        if(pointCloud.attributes[firstSemantic]){
+        if (pointCloud.attributes[firstSemantic]){
 
           var arrayOfBufferObjsV = pointCloud.attributes[firstSemantic];
 
           // Iterate over all the vertex buffer objects.
-          for(var currVBO = 0; currVBO < arrayOfBufferObjsV.length; currVBO++){
-		  
+          for (var currVBO = 0; currVBO < arrayOfBufferObjsV.length; currVBO++){
+
+	      // ps_Vertex
+              var attribVertex = ctx.getAttribLocation(currProgram, 'ps_Vertex');
+              ctx.bindBuffer(ctx.ARRAY_BUFFER, pointCloud.attributes['ps_Vertex'][currVBO].VBO);
+              ctx.vertexAttribPointer(attribVertex, 3, ctx.FLOAT, false, 16, 0);  // vertices
+              ctx.enableVertexAttribArray(attribVertex);
+              
+	      // ps_Color
+              var attribColor = ctx.getAttribLocation(currProgram, 'ps_Color');
+              ctx.bindBuffer(ctx.ARRAY_BUFFER, pointCloud.attributes['ps_Vertex'][currVBO].VBO);
+              ctx.vertexAttribPointer(attribColor, 3, ctx.UNSIGNED_BYTE, true, 16, 12);  // colors
+              ctx.enableVertexAttribArray(attribColor);
+
+              ctx.drawArrays(ctx.POINTS, 0, arrayOfBufferObjsV[currVBO].length);
+
             // iterate over all the semantic names "ps_Vertex", "ps_Normal", etc.
-            for (name in semantics){
+            //for (name in semantics){
 
 	      // update color
 	      //if (name == 1) {
@@ -957,13 +981,16 @@ var PointStream = (function() {
                 We iterate over each set of vertex vbo, enabling
                 the corresponding attributes which exist.
               */
+		/*
                 if(pointCloud.attributes[semantics[name]][currVBO]){
                   vertexAttribPointer(currProgram, semantics[name], 3, pointCloud.attributes[semantics[name]][currVBO].VBO);
                 }
+		*/
 
-            }
-            ctx.drawArrays(ctx.POINTS, 0, arrayOfBufferObjsV[currVBO].length/3);
-            
+            //}
+
+
+
             // If we render a point cloud with vertices and colors, then 
             // another one with only vertices, this may cause issues if we
             // don't disabled all the current attributes after each draw.
@@ -1485,7 +1512,7 @@ var PointStream = (function() {
       window.PSrequestAnimationFrame = (function(){
 
           return function(callback, cvs){
-            window.setTimeout(callback, 1000.0/20.0); // 20 fps
+            window.setTimeout(callback, 1000.0/60.0); 
           }
 
 	      /*****
