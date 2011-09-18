@@ -1,5 +1,5 @@
 var ps;
-
+var UpdateFlag = false;	// call render if true
 var lion;
 
 // Create an orbit camera halfway between the closest and farthest point
@@ -31,6 +31,7 @@ function zoom(amt){
   else{
     cam.goFarther(amt*2);
   }
+  UpdateFlag = true;
 }
 
 function mousePressed(RightClick){
@@ -43,11 +44,13 @@ function mousePressed(RightClick){
   else {
   	isDragging = true;
   }
+  UpdateFlag = true;
 }
 
 function mouseReleased(){
   isRightDragging = false;
   isDragging = false;
+  UpdateFlag = false;
 }
 
 function keyDown(){
@@ -81,6 +84,7 @@ function keyDown(){
   if (ps.key == 53) cam.setPosition( [20, 20, 20] ); // 5
   if (ps.key == 54) lion.setCenter( [0, 0, 0]); // 6 - reset point cloud center to 0,0,0
 
+  UpdateFlag = true;
 }
 
 function render() {
@@ -119,14 +123,13 @@ function render() {
   //ps.attenuation(10, 0, 0);
   //ps.pointSize(5);
 
-  var c = lion.getCenter();
-  ps.multMatrix(M4x4.makeLookAt(cam.position, cam.direction, cam.up));
-  ps.translate(-cam.position[0]-c[0], -cam.position[1]-c[1], -cam.position[2]-c[2]);
-
-  ps.clear();
-
-  ps.render(lion);
-
+  if (true === true) {
+     var c = lion.getCenter();
+     ps.multMatrix(M4x4.makeLookAt(cam.position, cam.direction, cam.up));
+     ps.translate(-cam.position[0]-c[0], -cam.position[1]-c[1], -cam.position[2]-c[2]);
+     ps.clear();
+     ps.render(lion);
+  }
 
   //console.log(lion.attributes["ps_Color"][0].length);
 
