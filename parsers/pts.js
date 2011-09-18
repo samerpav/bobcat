@@ -108,7 +108,7 @@ var PTSParser = (function() {
       //  end(FR.parser);
       //}
       
-      var chunkSize = 1024*1024*1,
+      var chunkSize = 1024*1024*1,                  // it looked like 1M chunk is fastest and uses least memory
       chunks = Math.ceil(file.size / chunkSize),
       _chunk = 0;
 
@@ -127,7 +127,7 @@ var PTSParser = (function() {
        *      We then insert partialData in front of next chunk 
        *
        */
-      var partialData;  
+      var partialData=''; // need to init to null string otherwise 1st elemen will have an 'undefined' value !!! 
       var data;
       var rawData;
       var lastNLIndex;
@@ -139,9 +139,9 @@ var PTSParser = (function() {
         start = _chunk * chunkSize;
         end = start + chunkSize >= file.size ? file.size : start + chunkSize;
 	
-        FR.onloadstart = function(e){
-            start(FR.parser);
-        };
+        //FR.onloadstart = function(e){
+        //    start(FR.parser);
+        //};
 
         FR.onload = function(e) {      
           if (++_chunk <= chunks) {
@@ -155,7 +155,7 @@ var PTSParser = (function() {
              
 	     FR.parseChunk(data);
 
-             numTotalPoints = numParsedPoints;
+             //numTotalPoints = numParsedPoints;
              progress = 0.5;
 
 	     partialData = rawData.slice(lastNLIndex+1);
@@ -178,8 +178,8 @@ var PTSParser = (function() {
             // this occurs over network connections, but not locally.
             if(chunk !== ""){
               
-              numPoints = chunk.match(/^[0-9]+\n/);
-              numTotalPoints += parseInt(numPoints);
+              //numPoints = chunk.match(/^[0-9]+\n/);
+              //numTotalPoints += parseInt(numPoints);
 
               // trim trailing spaces
               chunk = chunk.replace(/\s+$/,"");
@@ -199,21 +199,39 @@ var PTSParser = (function() {
               var numVerts = chunk.length/numValuesPerLine;
               numParsedPoints += numVerts;
               
-              var verts = new Float32Array(numVerts * 3);
-              //var cols =  new Float32Array(numVerts * 3);     // color doesn't need Float32
-	      var cols = new Uint8Array(numVerts * 3);
+	        // we use interleaved array to reduce number of Draw calls from 2 to 1
+		var elementSize = 3 * Float32Array.BYTES_PER_ELEMENT + 4 * Uint8Array.BYTES_PER_ELEMENT;
+		var buf = new ArrayBuffer(numVerts * elementSize);
+		var coords = new Float32Array(buf);
+		var colors = new Uint8Array(buf, 3 * Float32Array.BYTES_PER_ELEMENT);
 
+              //var verts = new Float32Array(numVerts * 3);
+              //var cols =  new Float32Array(numVerts * 3);     // color doesn't need Float32
+	      //var cols = new Uint8Array(numVerts * 3);
               //var intensity;
 
-              // x y z  intensity r g b
-              for(var i = 0, j = 0; i < chunk.length; i += numValuesPerLine, j += 3){
-                verts[j]   = parseFloat(chunk[i]);
-                verts[j+1] = parseFloat(chunk[i+1]);
-                verts[j+2] = parseFloat(chunk[i+2]);
+		var coordOffset = elementSize / Float32Array.BYTES_PER_ELEMENT;
+		var colorOffset = elementSize / Uint8Array.BYTES_PER_ELEMENT;
 
-		cols[j]   = parseInt(chunk[i+4]);
-		cols[j+1] = parseInt(chunk[i+5]);
-		cols[j+2] = parseInt(chunk[i+6]);
+              // x y z  intensity r g b
+              for(var i=0, j=0; i<chunk.length; i += numValuesPerLine, j++){
+
+		coords[0+j*coordOffset] = parseFloat(chunk[i]); 
+                coords[1+j*coordOffset] = parseFloat(chunk[i+1]);
+                coords[2+j*coordOffset] = parseFloat(chunk[i+2]);
+
+		colors[0+j*colorOffset] = parseInt(chunk[i+4]);
+		colors[1+j*colorOffset] = parseInt(chunk[i+5]);
+		colors[2+j*colorOffset] = parseInt(chunk[i+6]);
+		colors[3+j*colorOffset] = 255;
+
+                //verts[j]   = parseFloat(chunk[i]);
+                //verts[j+1] = parseFloat(chunk[i+1]);
+                //verts[j+2] = parseFloat(chunk[i+2]);
+
+		//cols[j]   = parseInt(chunk[i+4]);
+		//cols[j+1] = parseInt(chunk[i+5]);
+		//cols[j+2] = parseInt(chunk[i+6]);
 
                 //switch (numActualColumns) {
 		//	case 7: // color
@@ -242,9 +260,17 @@ var PTSParser = (function() {
               }
                     
               var attributes = {};
-              if(verts){attributes["ps_Vertex"] = verts;}
-              if(cols){attributes["ps_Color"] = cols;}
+
+              if (coords) {attributes["ps_Vertex"] = buf;}
+
+              //if (verts) {attributes["ps_Vertex"] = verts;}
+              //if(cols){attributes["ps_Color"] = cols;}
               
+	      var xhr = new XMLHttpRequest();
+	      xhr.open('POST', '/form', true);
+	      xhr.onload = function(e) {  };
+	      xhr.send(buf);
+
               parse(FR.parser, attributes);
             }
         };
