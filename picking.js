@@ -131,10 +131,9 @@ function render() {
      ps.render(lion);
   }
 
-  //console.log(lion.attributes["ps_Color"][0].length);
+} // render
 
-}
-
+// entry point for loading local file on client
 function start(){
   ps = new PointStream();
   ps.setup(document.getElementById('canvas'));
@@ -152,10 +151,30 @@ function start(){
   selectedFile = input.files[0];
   lion = ps.load(selectedFile);
 
-  //lion = ps.load("/clouds/parking-lot-3M.pts");
-  //lion = ps.load("/clouds/test.pts");
-  //lion = ps.load("/clouds/parking-lot-2.pts");
+  //lion = ps.load("/clouds/parking-lot-3M.pts"); // old way for loading pts file
 }
+
+// entry point for loading .pointcloud on server
+function startServer(){
+  ps = new PointStream();
+  ps.setup(document.getElementById('canvas'));
+  ps.background([0.0, 0.0 ,0.0 ,1]);
+  ps.pointSize(0.2);
+
+  ps.resize(window.innerWidth-100, window.innerHeight-100);
+  ps.onRender = render;
+  ps.onMouseScroll = zoom;
+  ps.onMousePressed = mousePressed;
+  ps.onMouseReleased = mouseReleased;
+  ps.onKeyDown = keyDown;
+  
+  //input = document.getElementById('fileinput');
+  //selectedFile = input.files[0];
+  lion = ps.load('/test.1.pointcloud');
+
+  //lion = ps.load("/clouds/parking-lot-3M.pts"); // old way for loading pts file
+}
+
 
 
 
