@@ -54,6 +54,7 @@ var PointStream = (function() {
     //registeredParsers["asc"] = ASCParser;
     //registeredParsers["psi"] = PSIParser;
     registeredParsers["pts"] = PTSParser;
+    registeredParsers["pointcloud"] = PointCloudParser;
     //registeredParsers["ply"] = PLYParser;
     
     var VERSION  = "0.7";
@@ -919,14 +920,11 @@ var PointStream = (function() {
       ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
     };
         
-    /**
-      Renders a point cloud.
-      @param {} pointCloud
-    */
     this.render = function(pointCloud){
     
       // Don't bother doing any work if we don't have a context yet.
-      if(ctx){
+      if (ctx) {
+
         // We need to find a way to detect normals. If normals don't exist,
         // we don't need to figure out the normal transformation.
         var topMatrix = this.peekMatrix();
@@ -934,15 +932,10 @@ var PointStream = (function() {
         uniformMatrix(currProgram, "ps_NormalMatrix", false, M4x4.transpose(normalMatrix));
         uniformMatrix(currProgram, "ps_ModelViewMatrix", false, topMatrix);
         
-        // Get the list of semantic names.
-        var semantics = Object.keys(pointCloud.attributes);
-
-        var firstSemantic = semantics[0]; // ps_Vertex
-        
         // We need at least positional data.
-        if (pointCloud.attributes[firstSemantic]){
+        if (pointCloud.attributes['ps_Vertex']) {
 
-          var arrayOfBufferObjsV = pointCloud.attributes[firstSemantic];
+          var arrayOfBufferObjsV = pointCloud.attributes['ps_Vertex'];
 
           // Iterate over all the vertex buffer objects.
           for (var currVBO = 0; currVBO < arrayOfBufferObjsV.length; currVBO++){
@@ -961,48 +954,12 @@ var PointStream = (function() {
 
               ctx.drawArrays(ctx.POINTS, 0, arrayOfBufferObjsV[currVBO].length);
 
-            // iterate over all the semantic names "ps_Vertex", "ps_Normal", etc.
-            //for (name in semantics){
+	      //disableVertexAttribPointer(currProgram, 'ps_Vertex' ;	
 
-	      // update color
-	      //if (name == 1) {
-              //  ctx.bindBuffer(ctx.ARRAY_BUFFER, pointCloud.attributes[semantics[name]][currVBO].VBO);
-              //  ctx.bufferSubData(ctx.ARRAY_BUFFER, 0, pointCloud.attributes[semantics[name]][currVBO].array);
-	      //}
-
-              /*
-                There is a chance we don't have the correspoding semantic data
-                for this vertex. In that case, we skip it.
-                
-                vertex [...] [.] [.......] [..]
-                color  [...] [.] [.......] [..]
-                normal [...] [.] <-- only have 2 VBOS
-                
-                We iterate over each set of vertex vbo, enabling
-                the corresponding attributes which exist.
-              */
-		/*
-                if(pointCloud.attributes[semantics[name]][currVBO]){
-                  vertexAttribPointer(currProgram, semantics[name], 3, pointCloud.attributes[semantics[name]][currVBO].VBO);
-                }
-		*/
-
-            //}
-
-
-
-            // If we render a point cloud with vertices and colors, then 
-            // another one with only vertices, this may cause issues if we
-            // don't disabled all the current attributes after each draw.
-	    //
-            //for(var name in semantics){                           
-            //  disableVertexAttribPointer(currProgram, semantics[name]);	
-            //}
-            
-          }
-        }
-      }
-    };
+          } // for-loop currVBO
+	} // if - firstSemantic
+      } // if - ctx
+    }; // this.render
         
     /**
       Resize the viewport.
@@ -1506,16 +1463,7 @@ var PointStream = (function() {
       ctx.useProgram(currProgram);
       setDefaultUniforms();
       
-      /**
-        @private
-      */
       window.PSrequestAnimationFrame = (function(){
-
-          return function(callback, cvs){
-            window.setTimeout(callback, 1000.0/60.0); 
-          }
-
-	      /*****
         return window.requestAnimationFrame ||
                window.webkitRequestAnimationFrame ||
                window.mozRequestAnimationFrame ||
@@ -1523,10 +1471,8 @@ var PointStream = (function() {
                window.msRequestAnimationFrame ||
 
                function(callback, cvs){
-                 //window.setTimeout(callback, 1000.0/60.0);
-                 window.setTimeout(callback, 1000);
+                 window.setTimeout(callback, 1000.0/60.0);
                };
-	       *****/
       })();
 
       // call the user's render function
@@ -1557,15 +1503,11 @@ var PointStream = (function() {
       uniformf(currProgram, "ps_Attenuation", [constant, linear, quadratic]);
     };
     
-    /**
-      @param {Number} size - in pixels
-    */
+    //@param {Number} size - in pixels
     this.pointSize = function(size){
       uniformf(currProgram, "ps_PointSize", size);
     };
 
-    /**
-    */
     this.stop = function(path){
       // get the parser associated with this path
       
@@ -1577,101 +1519,68 @@ var PointStream = (function() {
       }
     };
 
-    this.changeColor = function() {
-       alert('hello test');
-    }
-    
-    /**
-      Begins downloading and parsing a point cloud object.
-      
-      @param {String} path Path to the resource.
-      
-      @returns {} A point cloud object.
-    */
-    this.load = function(path){
+    this.load = function(path) {
+	
+	// path can be either string or object
+	// if path is string, the data being load is .pointcloud on server
+	// if path is object (ie. File object), load a local file
+	var extension = '';
+	if (typeof path==='string') {
+	  if (path.indexOf('.pointcloud') > 0)
+	    extension = 'pointcloud';
+	}
+	else if (typeof path==='object') {
+	  if (path.fileName.indexOf('.pts') > 0)
+	    extension = 'pts';
+	}
 
-      // get the extension of the resource
-      //var extension = path.split(".").pop().toLowerCase();
-      var extension = 'pts';
-      
-      if(registeredParsers[extension]){
-      
-        var parserObject = registeredParsers[extension];
+	if (!registeredParsers[extension]) {
+	  throw "There is no parser for the file type: " + extension;
+	}
 
-        var parser = new parserObject({ start: startCallback,
+	var parserObject = registeredParsers[extension];
+	var parser = new parserObject({ start: startCallback,
                                         parse: parseCallback,
                                         end: loadedCallback});
 
-        // The parser needs to keep track of the file
-        // it is loading since the user may want to
-        // later cancel loading by file path.
-        //parser.cloudName = path;
+	// The parser needs to keep track of the file
+	// it is loading since the user may want to
+	// later cancel loading by file path.
+	//parser.cloudName = path;
 	parser.cloudName = 'MyCloudName1';   // will have to change later
-        
-        // !! fix (private vars are visible in user script)
-        var newPointCloud = {
-          
-          VBOs: [],
-          attributes: {},
-          
-          progress: 0,
-          
-          /**
-            @private until fixed
-          */
-          getProgress: function(){
-            return this.progress;
-          },
-          
-          status: -1,
-          /**
-            @private until fixed
-          */
-          getStatus: function(){
-            return this.status;
-          },
-          
-          // this vector will be continuously incremented
-          // as more data is downloaded.
-          addedVertices: [0, 0, 0],
-          center: [0, 0, 0],
-          /**
-            @private until fixed
-          */
-          getCenter: function(){
-            return this.center;
-          },
-	  setCenter: function(c){
-	    this.center = c;
-	  },
-          
-          numTotalPoints: -1,
-          /**
-            @private until fixed
-          */
-          getNumTotalPoints: function(){
-            return this.numTotalPoints;
-          },
-          
-          numPoints: -1,
-          /**
-            @private until fixed
-          */
-          getNumPoints: function(){
-            return this.numPoints;
-          }
-        };
-        
-        parsers.push(parser);
-        pointClouds.push(newPointCloud);
-        
-        parser.load(path);
-        
-        return newPointCloud;
-      }
-      
-      throw "There is no parser for the file type: " + extension;
-    };
-  }
+
+	var newPointCloud = {
+		VBOs: [],
+		attributes: {},
+		progress: 0,
+		getProgress: function(){ return this.progress; },
+		status: -1,
+		getStatus: function(){ return this.status; },
+  
+		// this vector will be continuously incremented
+		// as more data is downloaded.
+		addedVertices: [0, 0, 0],
+		center: [0, 0, 0],
+
+		getCenter: function(){ return this.center; },
+		setCenter: function(c){ this.center = c; },
+		  
+		numTotalPoints: -1,
+		getNumTotalPoints: function(){ return this.numTotalPoints; },
+		  
+		numPoints: -1,
+		getNumPoints: function(){ return this.numPoints; }
+	};
+
+	parsers.push(parser);
+	pointClouds.push(newPointCloud);
+
+	parser.load(path);
+
+	return newPointCloud;
+    }; // this.load
+  } // pointstream
+
   return PointStream;
+
 }());
