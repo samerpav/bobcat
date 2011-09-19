@@ -1,8 +1,3 @@
-/*
-*/
-
-/*
-*/
 var ps_include = function(path){
   var lastScript = document.getElementsByTagName("head")[0].lastChild;
   var fullUrl = lastScript.src.substring(0, lastScript.src.lastIndexOf('/') + 1) + path;
@@ -19,3 +14,4 @@ ps_include('./libs/mjs.js');
 ps_include('parsers/asc.js');
 ps_include('parsers/psi.js');
 ps_include('parsers/pts.js');
+ps_include('parsers/pointcloud.js');
