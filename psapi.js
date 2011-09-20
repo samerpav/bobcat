@@ -920,6 +920,31 @@ var PointStream = (function() {
       ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
     };
         
+    this.upload = function (pointCloud, cloudName) {
+
+      // gotta have data before uploading
+      if (pointCloud.attributes['ps_Vertex']) {
+ 
+	var arrayOfVBOs = pointCloud.attributes['ps_Vertex'];
+
+	for (var i=0; i<arrayOfVBOs.length; i++){
+	   var xhr = new XMLHttpRequest();
+	   xhr.open('POST', '/upload', true);
+	   xhr.onload = function(e) {  };
+
+	   // our pointcloud's metadata. I think a lot more are to be added
+	   xhr.setRequestHeader("X-cloudName", cloudName);
+	   xhr.setRequestHeader("X-cloudSequence", i);
+	   xhr.setRequestHeader("X-cloudArrayByteLength", pointCloud.attributes['ps_Vertex'][i].array.byteLength);
+	   xhr.setRequestHeader("X-cloudNumPoints", pointCloud.numPoints);
+
+	   xhr.send(pointCloud.attributes['ps_Vertex'][i].array);
+	} // for
+
+      } // check attribute
+
+    } // this.upload
+
     this.render = function(pointCloud){
     
       // Don't bother doing any work if we don't have a context yet.
