@@ -87,6 +87,12 @@ function keyDown(){
   UpdateFlag = true;
 }
 
+function Upload() {
+
+   ps.upload(lion, 'testcloud');
+
+}
+
 function render() {
 
   if (isDragging === true){		
@@ -96,7 +102,7 @@ function render() {
 
 	cam.yaw(-deltaX * 0.015); // 0.015 indicates how fast yaw is done
 	cam.pitch(deltaY * 0.015);
-  }
+  } // if-isDragging
 
   if (isRightDragging === true) {
         var offsetX = ps.mouseX - rotationStartCoords[0];
@@ -108,12 +114,12 @@ function render() {
 	   VPanning = V3.cross(cam.direction, HPanning);
 	   	   
 	   var newPos = V3.add(lion.getCenter(), V3.scale(HPanning, -offsetX/20));
-	   newPos = V3.add(newPos, 	  V3.scale(VPanning, -offsetY/20)); 
+	   newPos = V3.add(newPos, V3.scale(VPanning, -offsetY/20)); 
 
 	   var curCen = lion.getCenter();
 	   lion.setCenter([newPos[0], newPos[1], newPos[2]]);
 	}	
-  }
+  } // if-isRightDragging
 
   //
   //         for ortho mode
