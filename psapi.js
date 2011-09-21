@@ -927,6 +927,7 @@ var PointStream = (function() {
  
 	var arrayOfVBOs = pointCloud.attributes['ps_Vertex'];
 
+	// iterate thru each VBO element; upload each async
 	for (var i=0; i<arrayOfVBOs.length; i++){
 	   var xhr = new XMLHttpRequest();
 	   xhr.open('POST', '/upload', true);
@@ -939,7 +940,17 @@ var PointStream = (function() {
 	   xhr.setRequestHeader("X-cloudNumPoints", pointCloud.numPoints);
 
 	   xhr.send(pointCloud.attributes['ps_Vertex'][i].array);
+
+	   console.log(i);
+
 	} // for
+
+	// finalize upload process
+	var xhr = new XMLHttpRequest();
+	xhr.open('POST', '/finalize', false);
+	xhr.setRequestHeader("X-cloudName", cloudName);
+	xhr.setRequestHeader("X-cloudTotalSequence", arrayOfVBOs.length);
+	xhr.send('finalize');
 
       } // check attribute
 
