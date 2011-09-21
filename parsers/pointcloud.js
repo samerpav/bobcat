@@ -51,7 +51,8 @@ var PointCloudParser = (function() {
       
       xhr.open('GET', '/load', true);
       xhr.responseType = 'arraybuffer';
-      xhr.send(null);
+      xhr.setRequestHeader("cloudName", path);
+      xhr.send();
 
     }; // load
 
