@@ -176,7 +176,7 @@ function startServer(){
   
   //input = document.getElementById('fileinput');
   //selectedFile = input.files[0];
-  lion = ps.load('/test.1.pointcloud');
+  lion = ps.load('testcloud.pointcloud');
 
   //lion = ps.load("/clouds/parking-lot-3M.pts"); // old way for loading pts file
 }
