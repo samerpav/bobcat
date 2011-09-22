@@ -938,19 +938,16 @@ var PointStream = (function() {
 	   xhr.setRequestHeader("X-cloudSequence", i);
 	   xhr.setRequestHeader("X-cloudArrayByteLength", pointCloud.attributes['ps_Vertex'][i].array.byteLength);
 	   xhr.setRequestHeader("X-cloudNumPoints", pointCloud.numPoints);
-
 	   xhr.send(pointCloud.attributes['ps_Vertex'][i].array);
-
-	   console.log(i);
 
 	} // for
 
 	// finalize upload process
 	var xhr = new XMLHttpRequest();
-	xhr.open('POST', '/finalize', false);
+	xhr.open('POST', '/finalize', true);
 	xhr.setRequestHeader("X-cloudName", cloudName);
 	xhr.setRequestHeader("X-cloudTotalSequence", arrayOfVBOs.length);
-	xhr.send('finalize');
+	xhr.send('');
 
       } // check attribute
 
