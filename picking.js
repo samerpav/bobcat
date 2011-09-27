@@ -1,5 +1,4 @@
 var ps;
-var UpdateFlag = false;	// call render if true
 var lion;
 
 // Create an orbit camera halfway between the closest and farthest point
@@ -31,7 +30,6 @@ function zoom(amt){
   else{
     cam.goFarther(amt*2);
   }
-  UpdateFlag = true;
 }
 
 function mousePressed(RightClick){
@@ -44,13 +42,11 @@ function mousePressed(RightClick){
   else {
   	isDragging = true;
   }
-  UpdateFlag = true;
 }
 
 function mouseReleased(){
   isRightDragging = false;
   isDragging = false;
-  UpdateFlag = false;
 }
 
 function keyDown(){
@@ -82,16 +78,32 @@ function keyDown(){
   if (ps.key == 51) cam.setPosition( [-10, 0, 0] ); // 3
   if (ps.key == 52) cam.setPosition( [0, 0, -10] ); // 4
   if (ps.key == 53) cam.setPosition( [20, 20, 20] ); // 5
-  if (ps.key == 54) lion.setCenter( [0, 0, 0]); // 6 - reset point cloud center to 0,0,0
 
-  UpdateFlag = true;
+  // 6
+  if (ps.key == 54) lion.setCenter( [0, 0, 0]); 
+
+  // 7
+  // switch between Z-up and Y-up
+  if (ps.key == 55) {
+	if (ps.UpAxisMatrix[5]==1) {
+	  // Y up
+	  ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
+                                   0, 0, 1, 0, 
+                                   0, 1, 0, 0, 
+                                   0, 0, 0, 1);
+	}
+	else {
+	  // Z up
+	  ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
+                                   0, 1, 0, 0, 
+                                   0, 0, 1, 0, 
+                                   0, 0, 0, 1);
+	}
+  } // 7
+
 }
 
-function Upload() {
-
-   ps.upload(lion, 'testcloud');
-
-}
+function Upload() { ps.upload(lion, 'testcloud'); }
 
 function render() {
 
@@ -153,6 +165,12 @@ function start(){
   ps.onMouseReleased = mouseReleased;
   ps.onKeyDown = keyDown;
   
+  // default up axis is Z
+  ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
+                           0, 1, 0, 0, 
+                           0, 0, 1, 0, 
+                           0, 0, 0, 1);
+
   input = document.getElementById('fileinput');
   selectedFile = input.files[0];
   lion = ps.load(selectedFile);
@@ -174,11 +192,13 @@ function startServer(){
   ps.onMouseReleased = mouseReleased;
   ps.onKeyDown = keyDown;
   
-  //input = document.getElementById('fileinput');
-  //selectedFile = input.files[0];
-  lion = ps.load('testcloud.pointcloud');
+  // default up axis is Z
+  ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
+                           0, 1, 0, 0, 
+                           0, 0, 1, 0, 
+                           0, 0, 0, 1);
 
-  //lion = ps.load("/clouds/parking-lot-3M.pts"); // old way for loading pts file
+  lion = ps.load('testcloud.pointcloud');
 }
 
 
