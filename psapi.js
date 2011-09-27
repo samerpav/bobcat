@@ -99,7 +99,12 @@ var PointStream = (function() {
     var projectionMatrix;
     var normalMatrix;
 
+    // this is for transforming Up axis
+    var UpAxisMatrix = [];
+
+    // this holds our shader program
     var currProgram;
+
     // Keep a reference to the default program object
     // in case the user wants to unset his shaders.
     var defaultProgram;
@@ -136,10 +141,13 @@ var PointStream = (function() {
     
     "uniform mat4 ps_ModelViewMatrix;" +
     "uniform mat4 ps_ProjectionMatrix;" +
-    
+    "uniform mat4 ps_SwitchUpAxisMatrix;" +  
+
     "void main(void) {" +
     "  frontColor = ps_Color;" +
-    "  vec4 ecPos4 = ps_ModelViewMatrix * vec4(ps_Vertex, 1.0);" +
+    "  vec4 fixedUpAxisPos4 = ps_SwitchUpAxisMatrix * vec4(ps_Vertex, 1.0);" + 
+    "  vec4 ecPos4 = ps_ModelViewMatrix * fixedUpAxisPos4;" +
+
     "  float dist = length(ecPos4);" +
     "  float attn = ps_Attenuation[0] + " +
     "              (ps_Attenuation[1] * dist) + " + 
@@ -964,6 +972,7 @@ var PointStream = (function() {
         normalMatrix = M4x4.inverseOrthonormal(topMatrix);
         uniformMatrix(currProgram, "ps_NormalMatrix", false, M4x4.transpose(normalMatrix));
         uniformMatrix(currProgram, "ps_ModelViewMatrix", false, topMatrix);
+        uniformMatrix(currProgram, "ps_SwitchUpAxisMatrix", false, this.UpAxisMatrix);
         
         // We need at least positional data.
         if (pointCloud.attributes['ps_Vertex']) {
@@ -1282,6 +1291,7 @@ var PointStream = (function() {
     this.peekMatrix = function(){
       return M4x4.clone(matrixStack[matrixStack.length - 1]);
     };
+
         
     /**
       Set the matrix at the top of the matrix stack.
@@ -1590,8 +1600,6 @@ var PointStream = (function() {
 		status: -1,
 		getStatus: function(){ return this.status; },
   
-		// this vector will be continuously incremented
-		// as more data is downloaded.
 		addedVertices: [0, 0, 0],
 		center: [0, 0, 0],
 
