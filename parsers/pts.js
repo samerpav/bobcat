@@ -141,7 +141,7 @@ var PTSParser = (function() {
 		colors[0+j*colorOffset] = parseInt(chunk[i+4]);
 		colors[1+j*colorOffset] = parseInt(chunk[i+5]);
 		colors[2+j*colorOffset] = parseInt(chunk[i+6]);
-		colors[3+j*colorOffset] = 255;
+		colors[3+j*colorOffset] = 255; // padding
 
                 //switch (numActualColumns) {
 		//	case 7: // color
