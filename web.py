@@ -1,19 +1,43 @@
 from pprint import pprint
 
 from twisted.web.server import Site
+from twisted.web import server
 from twisted.web.resource import Resource
-from twisted.internet import reactor
+from twisted.internet import reactor, defer, threads
 from twisted.web.static import File
 
-import cgi
 import cPickle
+import time
+
+def wait(seconds, result=None):
+    d = defer.Deferred()
+    reactor.callLater(seconds, d.callback, result)
+    return d
 
 class Load(Resource):
+
+    def final(self, message, request): 
+        request.finish()
+
+    #@defer.inlineCallbacks
+
+    def crap(self, request, name, num):
+        x = ''
+        pprint(str(num))
+        for n in range(num):
+            with open('c:\\' + name + '_' + str(n) + '.vbo', 'rb') as f:
+                x = cPickle.load(f)
+                request.write(x)
+                pprint("sending cloud #" + str(n))
+                #yield wait(0.0)
+        
+        
     def render_GET(self, request):
+        isLeaf = True
         cloudName = request.received_headers['cloudName']
 
         # check that file cloudName exists
-        # NYI
+        # nyi
 
         # find out how many vbo's there are
         with open('c:\\' + cloudName) as f:
@@ -23,15 +47,21 @@ class Load(Resource):
             # get just filename 
             fileName = cloudName.split('.')[0]
 
-            x = ''
-            for n in range(numVBO):
-                with open('c:\\' + fileName + '_' + str(n) + '.vbo', 'rb') as f:
-                     x += cPickle.load(f)
-                    #print(type(x))
+            #self.crap(request, fileName, numVBO)
+            
+            d = threads.deferToThread(self.crap, request, fileName, numVBO)
+            d.addCallback(lambda _: request.finish())
 
-            return x
+            return server.NOT_DONE_YET
+                    
+        #x += cPickle.load(f)
+        #print(type(x))
 
-        return -1;
+        #equest.finish()
+        #return server.NOT_DONE_YET
+        #return x
+
+        #return -1;
 
 class UploadVBO(Resource):
     def render_GET(self, request):
