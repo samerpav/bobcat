@@ -79,7 +79,7 @@ var PTSParser = (function() {
              
 	     FR.parseChunk(data);
 
-             //numTotalPoints = numParsedPoints;
+             numTotalPoints = numParsedPoints;
              progress = 0.5;
 
 	     partialData = rawData.slice(lastNLIndex+1);
