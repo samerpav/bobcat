@@ -541,6 +541,18 @@ var PointStream = (function() {
 
       var buffObj = createBufferObject(attributes['ps_Vertex']);
       pc.attributes['ps_Vertex'].push(buffObj);
+      
+      var coords = new Float32Array(attributes['ps_Vertex']);
+
+      for (var j=0; j < coords.length; j+=4) {
+         pc.addedVertices[0] += coords[j];
+         pc.addedVertices[1] += coords[j+1];
+         pc.addedVertices[2] += coords[j+2];
+      }
+      
+      pc.center[0] = pc.addedVertices[0] / pc.numPoints;
+      pc.center[1] = pc.addedVertices[1] / pc.numPoints;
+      pc.center[2] = pc.addedVertices[2] / pc.numPoints; 
 
       return;
 
