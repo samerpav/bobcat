@@ -21,6 +21,8 @@ var pickY = 0;
 
 var isInPickMode = false;
 
+var originalCenter = [];
+
 const KEY_ESC = 27;
 
 function zoom(amt){
@@ -57,20 +59,33 @@ function keyDown(){
   //if (ps.key == 48) isInPickMode = true;
 
   // test set color
-  if (ps.key==48) {
-    var numChunks = lion.attributes["ps_Color"].length;
+  //if (ps.key==48) {
+  //  var numChunks = lion.attributes["ps_Color"].length;
 
-    for (var i=0; i < numChunks; i++) {
-       var lenArray = lion.attributes["ps_Color"][i].array.length;
-       var cols = new Uint8Array(lenArray);
+  //  for (var i=0; i < numChunks; i++) {
+  //     var lenArray = lion.attributes["ps_Color"][i].array.length;
+  //     var cols = new Uint8Array(lenArray);
 
-       for (var j=0; j<lenArray; j+=3) {
-          cols[j] = 0;
-          cols[j+1] = 250;
-          cols[j+2] = 0;
-       }
-       lion.attributes["ps_Color"][i].array = cols;
-    }
+  //     for (var j=0; j<lenArray; j+=3) {
+  //        cols[j] = 0;
+  //        cols[j+1] = 250;
+  //        cols[j+2] = 0;
+  //     }
+  //     lion.attributes["ps_Color"][i].array = cols;
+  //  }
+  //}
+
+  // 0
+  if (ps.key == 48) {
+     var fov = 60;
+     var half_min_fov_in_radians = 0.5 * (fov * 3.14159265 / 180);
+     var aspect = 800/500;
+
+     var radius = 5;
+     var distance_to_center = radius / Math.sin(half_min_fov_in_radians);
+     var zoomFitCamPos = V3.scale(cam.direction, -distance_to_center); // needed minus to prevent view invertion!
+
+     cam.setPosition(zoomFitCamPos);
   }
 
   if (ps.key == 49) cam.setPosition( [10, 0, 0] ); // 1
@@ -80,7 +95,10 @@ function keyDown(){
   if (ps.key == 53) cam.setPosition( [20, 20, 20] ); // 5
 
   // 6
-  if (ps.key == 54) lion.setCenter( [0, 0, 0]); 
+  if (ps.key == 54) {
+	  lion.setCenter( originalCenter ); 
+	  //alert ( originalCenter[0] + ' ' + originalCenter[1] + ' ' + originalCenter[2]);
+  }
 
   // 7
   // switch between Z-up and Y-up
@@ -98,6 +116,7 @@ function keyDown(){
                                    0, 1, 0, 0, 
                                    0, 0, 1, 0, 
                                    0, 0, 0, 1);
+	  lion.setCenter([originalCenter[0], originalCenter[2], originalCenter[1]]);
 	}
   } // 7
 
@@ -141,13 +160,11 @@ function render() {
   //ps.attenuation(10, 0, 0);
   //ps.pointSize(5);
 
-  if (true === true) {
-     var c = lion.getCenter();
-     ps.multMatrix(M4x4.makeLookAt(cam.position, cam.direction, cam.up));
-     ps.translate(-cam.position[0]-c[0], -cam.position[1]-c[1], -cam.position[2]-c[2]);
-     ps.clear();
-     ps.render(lion);
-  }
+  var c = lion.getCenter();
+  ps.multMatrix(M4x4.makeLookAt(cam.position, cam.direction, cam.up));
+  ps.translate(-cam.position[0]-c[0], -cam.position[1]-c[1], -cam.position[2]-c[2]);
+  ps.clear();
+  ps.render(lion);
 
 } // render
 
@@ -174,6 +191,8 @@ function start(){
   input = document.getElementById('fileinput');
   selectedFile = input.files[0];
   lion = ps.load(selectedFile);
+
+  originalCenter = lion.getCenter();
 
   //lion = ps.load("/clouds/parking-lot-3M.pts"); // old way for loading pts file
 }
