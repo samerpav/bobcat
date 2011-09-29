@@ -2,7 +2,7 @@ var ps;
 var lion;
 
 // Create an orbit camera halfway between the closest and farthest point
-var cam = new OrbitCam({closest:1, farthest:100, distance: 10});
+var cam = new OrbitCam({closest:1, farthest:200, distance: 10});
 var rotationStartCoords = [0, 0];
 var isDragging = false;
 
@@ -77,14 +77,20 @@ function keyDown(){
 
   // 0
   if (ps.key == 48) {
+
      var fov = 60;
      var half_min_fov_in_radians = 0.5 * (fov * 3.14159265 / 180);
      var aspect = 800/500;
 
-     var radius = 5;
+     var radius = 20;
      var distance_to_center = radius / Math.sin(half_min_fov_in_radians);
-     var zoomFitCamPos = V3.scale(cam.direction, -distance_to_center); // needed minus to prevent view invertion!
 
+     var zoomFitCamPos = V3.scale([0,-1,0], -distance_to_center); // needed minus to prevent view invertion!
+
+     lion.setCenter([originalCenter[0], originalCenter[1], originalCenter[2]]);
+
+     // need to do this in 2 steps. first call aligns to Z then align to Up
+     cam.setPosition([0, 0, -1]);
      cam.setPosition(zoomFitCamPos);
   }
 
@@ -94,24 +100,19 @@ function keyDown(){
   if (ps.key == 52) cam.setPosition( [0, 0, -10] ); // 4
   if (ps.key == 53) cam.setPosition( [20, 20, 20] ); // 5
 
-  // 6
-  if (ps.key == 54) {
-	  lion.setCenter( originalCenter ); 
-	  //alert ( originalCenter[0] + ' ' + originalCenter[1] + ' ' + originalCenter[2]);
-  }
+  // 6 - revert to original center coordinates
+  if (ps.key == 54) { lion.setCenter( originalCenter ); }
 
   // 7
   // switch between Z-up and Y-up
   if (ps.key == 55) {
 	if (ps.UpAxisMatrix[5]==1) {
-	  // Y up
 	  ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
                                    0, 0, 1, 0, 
                                    0, 1, 0, 0, 
                                    0, 0, 0, 1);
 	}
 	else {
-	  // Z up
 	  ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
                                    0, 1, 0, 0, 
                                    0, 0, 1, 0, 
@@ -184,9 +185,9 @@ function start(){
   
   // default up axis is Z
   ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
-                           0, 1, 0, 0, 
-                           0, 0, 1, 0, 
-                           0, 0, 0, 1);
+			   0, 1, 0, 0, 
+			   0, 0, 1, 0, 
+			   0, 0, 0, 1);
 
   input = document.getElementById('fileinput');
   selectedFile = input.files[0];
@@ -219,35 +220,6 @@ function startServer(){
 
   lion = ps.load('testcloud.pointcloud');
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
