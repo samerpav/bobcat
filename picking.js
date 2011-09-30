@@ -78,6 +78,11 @@ function keyDown(){
   // 0
   if (ps.key == 48) {
 
+     console.log(lion.getBoundingBoxMin());
+     console.log(lion.getBoundingBoxMax());
+
+     return;
+
      var fov = 60;
      var half_min_fov_in_radians = 0.5 * (fov * 3.14159265 / 180);
      var aspect = 800/500;
@@ -185,8 +190,8 @@ function start(){
   
   // default up axis is Z
   ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
-			   0, 1, 0, 0, 
 			   0, 0, 1, 0, 
+			   0, 1, 0, 0, 
 			   0, 0, 0, 1);
 
   input = document.getElementById('fileinput');
@@ -214,8 +219,8 @@ function startServer(){
   
   // default up axis is Z
   ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
-                           0, 1, 0, 0, 
                            0, 0, 1, 0, 
+                           0, 1, 0, 0, 
                            0, 0, 0, 1);
 
   lion = ps.load('testcloud.pointcloud');
