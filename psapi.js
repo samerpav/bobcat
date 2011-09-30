@@ -545,61 +545,26 @@ var PointStream = (function() {
       var coords = new Float32Array(attributes['ps_Vertex']);
 
       for (var j=0; j < coords.length; j+=4) {
-         pc.addedVertices[0] += coords[j];
-         pc.addedVertices[1] += coords[j+1];
-         pc.addedVertices[2] += coords[j+2];
+	 pc.boundingBoxMin[0] = Math.min(pc.boundingBoxMin[0], coords[j]);
+	 pc.boundingBoxMin[1] = Math.min(pc.boundingBoxMin[1], coords[j+1]);
+	 pc.boundingBoxMin[2] = Math.min(pc.boundingBoxMin[2], coords[j+2]);
+
+	 pc.boundingBoxMax[0] = Math.max(pc.boundingBoxMax[0], coords[j]);
+	 pc.boundingBoxMax[1] = Math.max(pc.boundingBoxMax[1], coords[j+1]);
+	 pc.boundingBoxMax[2] = Math.max(pc.boundingBoxMax[2], coords[j+2]);
+
+         //pc.addedVertices[0] += coords[j];
+         //pc.addedVertices[1] += coords[j+1];
+         //pc.addedVertices[2] += coords[j+2];
       }
       
-      pc.center[0] = pc.addedVertices[0] / pc.numPoints;
-      pc.center[1] = pc.addedVertices[1] / pc.numPoints;
-      pc.center[2] = pc.addedVertices[2] / pc.numPoints; 
+      //pc.center[0] = pc.addedVertices[0] / pc.numPoints;
+      //pc.center[1] = pc.addedVertices[1] / pc.numPoints;
+      //pc.center[2] = pc.addedVertices[2] / pc.numPoints; 
 
-      return;
-
-      
-      // assume the first attribute is vertex data
-      var gotVertexData = false;
-      
-      for(var semantic in attributes){
-        
-        // if not yet created
-        if(!pc.attributes[semantic]){
-          pc.attributes[semantic] = [];
-        }
-
-        var buffObj = createBufferObject(attributes[semantic]);
-        pc.attributes[semantic].push(buffObj);
-        
-	/****
-        if(gotVertexData === false){
-          gotVertexData = true;
-          var addedVertices = [0,0,0];
-          
-          for(var j = 0; j < attributes[semantic].length; j += 3){
-            addedVertices[0] += attributes[semantic][j];
-            addedVertices[1] += attributes[semantic][j+1];
-            addedVertices[2] += attributes[semantic][j+2];
-          }
-
-          pc.addedVertices[0] += addedVertices[0];
-          pc.addedVertices[1] += addedVertices[1];
-          pc.addedVertices[2] += addedVertices[2];
-          
-          //pc.center[0] = pc.addedVertices[0] / pc.numPoints;
-          //pc.center[1] = pc.addedVertices[1] / pc.numPoints;
-          //pc.center[2] = pc.addedVertices[2] / pc.numPoints;
-        }
-	******/
-      }
     }
         
-    /**
-      @private
-      
-      The parser will call this when the file is done being downloaded.
-      
-      @param {Object} parser
-    */
+    //The parser will call this when the file is done being downloaded.
     function loadedCallback(parser){
     
       // We may have several point clouds streaming.
@@ -612,19 +577,13 @@ var PointStream = (function() {
       //pc.progress = parser.progress;
     }
     
-    /**
-      @private
-    */
     function renderLoop(){
-      frames++;
-      frameCount++;
-      var now = new Date();
+      //frames++;
+      //frameCount++;
+      //var now = new Date();
 
       matrixStack.push(M4x4.I);
-
-      // now call user's stuff
       usersRender();
-      
       matrixStack.pop();
       
       // if more than 1 second has elapsed, recalculate fps
@@ -1614,9 +1573,14 @@ var PointStream = (function() {
   
 		addedVertices: [0, 0, 0],
 		center: [0, 0, 0],
+		boundingBoxMax: [0, 0, 0],
+		boundingBoxMin: [0, 0, 0],
+
 
 		getCenter: function(){ return this.center; },
 		setCenter: function(c){ this.center = c; },
+		getBoundingBoxMax: function() { return this.boundingBoxMax; },
+		getBoundingBoxMin: function() { return this.boundingBoxMin; },
 		  
 		numTotalPoints: -1,
 		getNumTotalPoints: function(){ return this.numTotalPoints; },
