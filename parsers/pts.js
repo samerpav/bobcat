@@ -101,6 +101,9 @@ var PTSParser = (function() {
             // this occurs over network connections, but not locally.
             if(chunk !== ""){
               
+	      // get rid off all lines containing point clouds
+              chunk = chunk.replace(/^\d+\s+$/gm, "");
+
               //numPoints = chunk.match(/^[0-9]+\n/);
               //numTotalPoints += parseInt(numPoints);
 
