@@ -17,9 +17,17 @@ var OrbitCam = (function(){
     var orbitPoint = V3.$(0, 0, 0);
     
     // Transformation matrix
-    var left = V3.$(-1, 0, 0);
+	// my new metrics is better
+    var left = V3.$( 1, 0, 0);
     var up =   V3.$( 0, 1, 0);
-    var dir =  V3.$( 0, 0,-1);
+    var dir =  V3.$( 0, 0, 1);
+	
+	// original metrics
+    //var left = V3.$(-1, 0, 0);
+    //var up =   V3.$( 0, 1, 0);
+    //var dir =  V3.$( 0, 0,-1);
+
+
     var pos =  V3.$( 0, 0, config.closest);
     
     // only set the distance if it is valid
