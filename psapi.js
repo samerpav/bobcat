@@ -557,10 +557,12 @@ var PointStream = (function() {
          //pc.addedVertices[1] += coords[j+1];
          //pc.addedVertices[2] += coords[j+2];
       }
-      
-      //pc.center[0] = pc.addedVertices[0] / pc.numPoints;
-      //pc.center[1] = pc.addedVertices[1] / pc.numPoints;
-      //pc.center[2] = pc.addedVertices[2] / pc.numPoints; 
+
+      pc.center[0] = (pc.boundingBoxMax[0] + pc.boundingBoxMin[0])/2;
+      pc.center[1] = (pc.boundingBoxMax[1] + pc.boundingBoxMin[1])/2;
+      pc.center[2] = (pc.boundingBoxMax[2] + pc.boundingBoxMin[2])/2;
+
+      pc.radius = Math.max(pc.boundingBoxMax[0]-pc.center[0], pc.boundingBoxMax[2]-pc.center[2]);
 
     }
         
@@ -1573,14 +1575,16 @@ var PointStream = (function() {
   
 		addedVertices: [0, 0, 0],
 		center: [0, 0, 0],
-		boundingBoxMax: [0, 0, 0],
-		boundingBoxMin: [0, 0, 0],
+		boundingBoxMax: [-1000000, -10000, -1000000],
+		boundingBoxMin: [1000000, 10000, 1000000],
+		radius: 0,
 
 
 		getCenter: function(){ return this.center; },
 		setCenter: function(c){ this.center = c; },
 		getBoundingBoxMax: function() { return this.boundingBoxMax; },
 		getBoundingBoxMin: function() { return this.boundingBoxMin; },
+		getRadius: function () { return this.radius; },
 		  
 		numTotalPoints: -1,
 		getNumTotalPoints: function(){ return this.numTotalPoints; },
