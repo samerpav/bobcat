@@ -2,7 +2,7 @@ var ps;
 var lion;
 
 // Create an orbit camera halfway between the closest and farthest point
-var cam = new OrbitCam({closest:1, farthest:200, distance: 10});
+var cam = new OrbitCam({closest:0.1, farthest:5000, distance: 10});
 var rotationStartCoords = [0, 0];
 var isDragging = false;
 
@@ -12,12 +12,6 @@ var isRightDragging = false;
 var HPanning = V3.$( 1, 0, 0);
 var VPanning = V3.$( 0, 0, 1);
 var up = V3.$( 0, 1, 0);
-
-var accumX = 0;
-var accumY = 0;
-
-var pickX = 0;
-var pickY = 0;
 
 var isInPickMode = false;
 
@@ -77,20 +71,14 @@ function keyDown(){
 
   // 0
   if (ps.key == 48) {
-
-     console.log(lion.getBoundingBoxMin());
-     console.log(lion.getBoundingBoxMax());
-
-     return;
-
      var fov = 60;
      var half_min_fov_in_radians = 0.5 * (fov * 3.14159265 / 180);
      var aspect = 800/500;
 
-     var radius = 20;
-     var distance_to_center = radius / Math.sin(half_min_fov_in_radians);
+     var distance_to_center = lion.radius / Math.sin(half_min_fov_in_radians);
 
-     var zoomFitCamPos = V3.scale([0,-1,0], -distance_to_center); // needed minus to prevent view invertion!
+	 // needed minus to prevent view invertion!
+	 var zoomFitCamPos = V3.scale([0,-1,0], -distance_to_center); 
 
      lion.setCenter([originalCenter[0], originalCenter[1], originalCenter[2]]);
 
@@ -105,24 +93,41 @@ function keyDown(){
   if (ps.key == 52) cam.setPosition( [0, 0, -10] ); // 4
   if (ps.key == 53) cam.setPosition( [20, 20, 20] ); // 5
 
-  // 6 - revert to original center coordinates
-  if (ps.key == 54) { lion.setCenter( originalCenter ); }
+  // 6 - for debugging
+  if (ps.key == 54) { 
+	console.log(cam.getMatrix().slice(0,4));
+	console.log(cam.getMatrix().slice(4,8));
+	console.log(cam.getMatrix().slice(8,12));
+	console.log(cam.getMatrix().slice(12,16));
+	console.log('cam.position = ' + cam.position[0].toFixed(2) + ' ' 
+								  + cam.position[1].toFixed(2) + ' ' 
+								  + cam.position[2].toFixed(2) );
+    var c = lion.getCenter();
+    console.log('current center = ' + c[0].toFixed(2) + ' ' 
+							 + c[1].toFixed(2) + ' ' 
+							 + c[2].toFixed(2)  );
+  }
+
+  //if (ps.key == 54) { lion.setCenter( originalCenter ); }
 
   // 7
   // switch between Z-up and Y-up
   if (ps.key == 55) {
 	if (ps.UpAxisMatrix[5]==1) {
-	  ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
-                                   0, 0, 1, 0, 
-                                   0, 1, 0, 0, 
-                                   0, 0, 0, 1);
+	  console.log('Z-up --> Y-up');
+	  ps.UpAxisMatrix = M4x4.$(-1, 0, 0, 0, 
+						        0, 0, 1, 0, 
+                                0, 1, 0, 0, 
+                                0, 0, 0, 1);
+      lion.setCenter([-originalCenter[0], originalCenter[2], originalCenter[1]]);
 	}
 	else {
+	  console.log('as-is');
+      lion.setCenter([originalCenter[0], originalCenter[1], originalCenter[2]]);
 	  ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
-                                   0, 1, 0, 0, 
-                                   0, 0, 1, 0, 
-                                   0, 0, 0, 1);
-	  lion.setCenter([originalCenter[0], originalCenter[2], originalCenter[1]]);
+                               0, 1, 0, 0, 
+                               0, 0, 1, 0, 
+                               0, 0, 0, 1);
 	}
   } // 7
 
@@ -189,10 +194,10 @@ function start(){
   ps.onKeyDown = keyDown;
   
   // default up axis is Z
-  ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
-			   0, 0, 1, 0, 
-			   0, 1, 0, 0, 
-			   0, 0, 0, 1);
+  ps.UpAxisMatrix = M4x4.$(-1, 0, 0, 0, 
+                            0, 0, 1, 0, 
+                            0, 1, 0, 0, 
+                            0, 0, 0, 1);
 
   input = document.getElementById('fileinput');
   selectedFile = input.files[0];
@@ -218,7 +223,7 @@ function startServer(){
   ps.onKeyDown = keyDown;
   
   // default up axis is Z
-  ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
+  ps.UpAxisMatrix = M4x4.$(-1, 0, 0, 0, 
                            0, 0, 1, 0, 
                            0, 1, 0, 0, 
                            0, 0, 0, 1);
