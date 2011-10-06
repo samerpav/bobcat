@@ -69,18 +69,16 @@ function keyDown(){
   //  }
   //}
 
-  // 0
+  // 0 - zoom to fit
   if (ps.key == 48) {
-     var fov = 60;
+     var fov = 90;
      var half_min_fov_in_radians = 0.5 * (fov * 3.14159265 / 180);
      var aspect = 800/500;
 
-     var distance_to_center = lion.radius / Math.sin(half_min_fov_in_radians);
+     var distance_to_center = lion.radius/2/Math.sin(half_min_fov_in_radians);
 
 	 // needed minus to prevent view invertion!
 	 var zoomFitCamPos = V3.scale([0,-1,0], -distance_to_center); 
-
-     lion.setCenter([originalCenter[0], originalCenter[1], originalCenter[2]]);
 
      // need to do this in 2 steps. first call aligns to Z then align to Up
      cam.setPosition([0, 0, -1]);
@@ -99,6 +97,7 @@ function keyDown(){
 	console.log(cam.getMatrix().slice(4,8));
 	console.log(cam.getMatrix().slice(8,12));
 	console.log(cam.getMatrix().slice(12,16));
+	console.log('radius = ' + lion.radius);
 	console.log('cam.position = ' + cam.position[0].toFixed(2) + ' ' 
 								  + cam.position[1].toFixed(2) + ' ' 
 								  + cam.position[2].toFixed(2) );
@@ -114,23 +113,28 @@ function keyDown(){
   // switch between Z-up and Y-up
   if (ps.key == 55) {
 	if (ps.UpAxisMatrix[5]==1) {
-	  console.log('Z-up --> Y-up');
+	  console.log('z-up');
 	  ps.UpAxisMatrix = M4x4.$(-1, 0, 0, 0, 
 						        0, 0, 1, 0, 
                                 0, 1, 0, 0, 
                                 0, 0, 0, 1);
+
+	  // the transformation matrix requires that
+	  // we swap center-Y and center-Z 
+	  // otherwise, the camera won't point in the correct direction
       lion.setCenter([-originalCenter[0], originalCenter[2], originalCenter[1]]);
 	}
 	else {
-	  console.log('as-is');
-      lion.setCenter([originalCenter[0], originalCenter[1], originalCenter[2]]);
+	  console.log('y-up');
 	  ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
                                0, 1, 0, 0, 
                                0, 0, 1, 0, 
                                0, 0, 0, 1);
+	  //
+	  // revert center back to its original value
+      lion.setCenter([originalCenter[0], originalCenter[1], originalCenter[2]]);
 	}
   } // 7
-
 }
 
 function Upload() { ps.upload(lion, 'testcloud'); }
@@ -204,6 +208,11 @@ function start(){
   lion = ps.load(selectedFile);
 
   originalCenter = lion.getCenter();
+
+  // the transformation matrix requires that
+  // we swap center-Y and center-Z 
+  // otherwise, the camera won't point in the correct direction
+  lion.setCenter([-originalCenter[0], originalCenter[2], originalCenter[1]]);
 
   //lion = ps.load("/clouds/parking-lot-3M.pts"); // old way for loading pts file
 }
