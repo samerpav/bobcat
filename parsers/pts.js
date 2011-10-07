@@ -1,3 +1,53 @@
+function hsv2rgb(hsv) {
+	var rgb = new Object();
+
+	var c = hsv.v * hsv.s;
+	var h2 = hsv.h / 60.0;
+	var x = c * (1 - Math.abs(h2 % 2 - 1));
+
+	switch (true) {
+			case ((h2 >= 0) && (h2 < 1)):
+				rgb.r=c;
+				rgb.g=x;
+				rgb.b=0;
+				break;
+			case ((h2 >= 1) && (h2 < 2)):
+				rgb.r=x;
+				rgb.g=c;
+				rgb.b=0;
+				break;
+			case ((h2 >= 2) && (h2 < 3)):
+				rgb.r=0;
+				rgb.g=c;
+				rgb.b=x;
+				break;
+			case ((h2 >= 3) && (h2 < 4)):
+				rgb.r=0;
+				rgb.g=x;
+				rgb.b=c;
+				break;
+			case ((h2 >= 4) && (h2 < 5)):
+				rgb.r=x;
+				rgb.g=0;
+				rgb.b=c;
+				break;
+			case ((h2 >= 5) && (h2 < 6)):
+				rgb.r=c;
+				rgb.g=0;
+				rgb.b=x;
+				break;
+		default: rgb.r=rgb.g=rgb.b=0;
+	}
+
+	var m = hsv.v - c;
+
+	rgb.r += m;
+	rgb.g += m;
+	rgb.b += m;
+
+	return rgb;
+}
+
 var PTSParser = (function() {
 
   function PTSParser(config) {
@@ -101,7 +151,8 @@ var PTSParser = (function() {
             // this occurs over network connections, but not locally.
             if(chunk !== ""){
               
-	      // get rid off all lines containing point clouds
+	          // get rid off lines having just number of points.
+			  // there could be many instances of these throughout a pts file
               chunk = chunk.replace(/^\d+\s+$/gm, "");
 
               //numPoints = chunk.match(/^[0-9]+\n/);
@@ -114,62 +165,74 @@ var PTSParser = (function() {
               chunk = chunk.replace(/^\s+/,"");
 
               // find out how many columns per line
-              //var firstline = chunk.split(/\n/, 1);
-              //var numActualColumns = firstline[0].split(" ").length;
+              var firstline = chunk.split(/\n/, 1);
+              var numActualColumns = firstline[0].split(" ").length;
 
               // split on white space
               chunk = chunk.split(/\s+/);
 
-              const numValuesPerLine = 7;	// numActualColumns;
+              const numValuesPerLine = numActualColumns;
               var numVerts = chunk.length/numValuesPerLine;
               numParsedPoints += numVerts;
               
-	      // we use interleaved array to reduce number of Draw calls from 2 to 1
-	      var elementSize = 3 * Float32Array.BYTES_PER_ELEMENT + 4 * Uint8Array.BYTES_PER_ELEMENT;
-	      var buf = new ArrayBuffer(numVerts * elementSize);
-	      var coords = new Float32Array(buf);
-	      var colors = new Uint8Array(buf, 3 * Float32Array.BYTES_PER_ELEMENT);
-	      //var intensity;
+		      // we use interleaved array to reduce number of Draw calls from 2 to 1
+		      var elementSize = 3 * Float32Array.BYTES_PER_ELEMENT + 
+					  			4 * Uint8Array.BYTES_PER_ELEMENT;
 
-	      var coordOffset = elementSize / Float32Array.BYTES_PER_ELEMENT;
-	      var colorOffset = elementSize / Uint8Array.BYTES_PER_ELEMENT;
+		      var buf = new ArrayBuffer(numVerts * elementSize);
+		      var coords = new Float32Array(buf);
+		      var colors = new Uint8Array(buf, 3 * Float32Array.BYTES_PER_ELEMENT);
+		      //var intens = new Int16Array(buf, 3*Float32Array.BYTES_PER_ELEMENT + 4*Uint8Array.BYTES_PER_ELEMENT);
+
+	          var coordOffset = elementSize / Float32Array.BYTES_PER_ELEMENT;
+	          var colorOffset = elementSize / Uint8Array.BYTES_PER_ELEMENT;
+			  //var intensityOffset = elementSize / Int16Array.BYTES_PER_ELEMENT;
+			  var rawIntensity, normIntensity;
+
+		      var hsv = new Object();
 
               // x y z intensity r g b
-              for(var i=0, j=0; i<chunk.length; i += numValuesPerLine, j++){
+              for (var i=0, j=0; i<chunk.length; i += numValuesPerLine, j++){
 
-		coords[0+j*coordOffset] = parseFloat(chunk[i]); 
-                coords[1+j*coordOffset] = parseFloat(chunk[i+1]);
-                coords[2+j*coordOffset] = parseFloat(chunk[i+2]);
+				coords[0+j*coordOffset] = parseFloat(chunk[i]);   // X
+                coords[1+j*coordOffset] = parseFloat(chunk[i+1]); // Y
+                coords[2+j*coordOffset] = parseFloat(chunk[i+2]); // Z
 
-		colors[0+j*colorOffset] = parseInt(chunk[i+4]);
-		colors[1+j*colorOffset] = parseInt(chunk[i+5]);
-		colors[2+j*colorOffset] = parseInt(chunk[i+6]);
-		colors[3+j*colorOffset] = 255; // padding
+                switch (numActualColumns) {
+					case 7: // color
+						colors[0+j*colorOffset] = parseInt(chunk[i+4]); // R
+						colors[1+j*colorOffset] = parseInt(chunk[i+5]); // G
+						colors[2+j*colorOffset] = parseInt(chunk[i+6]); // B
+						colors[3+j*colorOffset] = 255; // padding
+						break;
 
-                //switch (numActualColumns) {
-		//	case 7: // color
-		//			cols[j]   = parseInt(chunk[i+4])/255;
-		//			cols[j+1] = parseInt(chunk[i+5])/255;
-		//			cols[j+2] = parseInt(chunk[i+6])/255;
-		//		break;
+					case 4: // intensity
+						rawIntensity = parseInt(chunk[i+3]);
+						//intens[0+j*intensityOffset] = rawIntensity;
 
-		//	case 4: // intensity
-		//		intensity = parseFloat(chunk[i+3]);
-		//		intensity = (intensity+2048)/4096;
+						normIntensity = (rawIntensity+2048)/4096;
 
-		//		cols[j]   = intensity < 0.5 ? (-510*intensity+255)/255 : 0;
+						// convert intensity to rgb
+						// and then add r,g,b to the interleaved array
+						hsv.s = 0.9;  // arbitrary constant
+						hsv.v = 1;	// arbitrary constant
+						hsv.h = 360 * normIntensity; // hue is between 0 - 359 degrees
+				 		var rgb = hsv2rgb(hsv);
 
-		//		var fTmp = -1*Math.pow(50*(intensity-0.5),2) + 255;
-		//		cols[j+1] = fTmp < 0 ? 0 : fTmp/255;
+						colors[0+j*colorOffset] = Math.round(rgb.r*255); // R
+						colors[1+j*colorOffset] = Math.round(rgb.g*255); // G
+						colors[2+j*colorOffset] = Math.round(rgb.b*255); // B
+						colors[3+j*colorOffset] = 255; // padding
 
-		//		cols[j+2] = intensity > 0.5 ? (510*intensity+255)/255 : 0;
-		//		break;
+						break;
 
-		//	default: // fixed intensity
-		//		cols[j]   = 0;
-		//		cols[j+1] = 128;
-		//		cols[j+2] = 0;
-                //}
+					default: // fixed intensity
+						colors[0+j*colorOffset] = 0;
+						colors[1+j*colorOffset] = 128;
+						colors[2+j*colorOffset] = 0;
+						colors[3+j*colorOffset] = 255; // padding
+				} // switch
+
               } // for
                     
               var attributes = {};
