@@ -533,6 +533,7 @@ var PointStream = (function() {
 
       pc.status = STREAMING;
       pc.progress = parser.progress;
+
       pc.numPoints = parser.numParsedPoints;
       
       if (!pc.attributes['ps_Vertex']){
@@ -545,17 +546,13 @@ var PointStream = (function() {
       var coords = new Float32Array(attributes['ps_Vertex']);
 
       for (var j=0; j < coords.length; j+=4) {
-	 pc.boundingBoxMin[0] = Math.min(pc.boundingBoxMin[0], coords[j]);
-	 pc.boundingBoxMin[1] = Math.min(pc.boundingBoxMin[1], coords[j+1]);
-	 pc.boundingBoxMin[2] = Math.min(pc.boundingBoxMin[2], coords[j+2]);
+		pc.boundingBoxMin[0] = Math.min(pc.boundingBoxMin[0], coords[j]);
+		pc.boundingBoxMin[1] = Math.min(pc.boundingBoxMin[1], coords[j+1]);
+		pc.boundingBoxMin[2] = Math.min(pc.boundingBoxMin[2], coords[j+2]);
 
-	 pc.boundingBoxMax[0] = Math.max(pc.boundingBoxMax[0], coords[j]);
-	 pc.boundingBoxMax[1] = Math.max(pc.boundingBoxMax[1], coords[j+1]);
-	 pc.boundingBoxMax[2] = Math.max(pc.boundingBoxMax[2], coords[j+2]);
-
-         //pc.addedVertices[0] += coords[j];
-         //pc.addedVertices[1] += coords[j+1];
-         //pc.addedVertices[2] += coords[j+2];
+		pc.boundingBoxMax[0] = Math.max(pc.boundingBoxMax[0], coords[j]);
+		pc.boundingBoxMax[1] = Math.max(pc.boundingBoxMax[1], coords[j+1]);
+		pc.boundingBoxMax[2] = Math.max(pc.boundingBoxMax[2], coords[j+2]);
       }
 
       pc.center[0] = (pc.boundingBoxMax[0] + pc.boundingBoxMin[0])/2;
@@ -564,7 +561,7 @@ var PointStream = (function() {
 
       pc.radius = Math.max(pc.boundingBoxMax[0]-pc.center[0], pc.boundingBoxMax[2]-pc.center[2]);
 
-    }
+    } // parseCallback
         
     //The parser will call this when the file is done being downloaded.
     function loadedCallback(parser){
