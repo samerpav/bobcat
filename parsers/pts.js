@@ -122,33 +122,28 @@ var PTSParser = (function() {
         //};
 
         FR.onload = function(e) {      
-          if (++_chunk <= chunks) {
 
-	     rawData = FR.result;
-	     lastNLIndex = rawData.lastIndexOf('\n');
+			if (++_chunk <= chunks) {
 
-	     //console.log('partial = ' + partialData);        // debugging - previous chunk's incomplete last line
-	     
-	     data = partialData + rawData.slice(0, lastNLIndex);
-             
-	     FR.parseChunk(data);
+				rawData = FR.result;
+				lastNLIndex = rawData.lastIndexOf('\n');
+				//console.log('partial = ' + partialData);        // debugging - previous chunk's incomplete last line
 
-             numTotalPoints = numParsedPoints;
-             progress = 0.5;
+				data = partialData + rawData.slice(0, lastNLIndex);
+				FR.parseChunk(data);
 
-	     partialData = rawData.slice(lastNLIndex+1);
+				numTotalPoints = numParsedPoints;
+				progress = Math.round(_chunk/chunks*100);
 
-	     //var i = data.indexOf('\n');                      // debugging
-	     //console.log('full   = ' + data.slice(0,i));      // debugging
+				partialData = rawData.slice(lastNLIndex+1);
 
-             loadNext(); // shortcut here
+				//var i = data.indexOf('\n');                      // debugging
+				//console.log('full   = ' + data.slice(0,i));      // debugging
 
-	     data = null;
-          }
-	  //else {
-	    //end(FR.parser);
-	  //}
-        };
+				loadNext(); // shortcut here
+				data = null;
+          	} // if _chunk
+        }; // onload
 
         FR.parseChunk = function(chunk) {
 
