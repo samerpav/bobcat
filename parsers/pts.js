@@ -1,3 +1,7 @@
+/*
+ * returns an object with 3 properties: r, g, b
+ * each one has a range of [0,1]
+*/
 function hsv2rgb(hsv) {
 	var rgb = new Object();
 
@@ -146,38 +150,22 @@ var PTSParser = (function() {
 	  //}
         };
 
-        FR.parseChunk = function(chunk){
+        FR.parseChunk = function(chunk) {
 
-            // this occurs over network connections, but not locally.
-            if(chunk !== ""){
+            if (chunk !== "") {
               
 	          // get rid off lines having just number of points.
 			  // there could be many instances of these throughout a pts file
               chunk = chunk.replace(/^\d+\s+$/gm, "");
 
-              //numPoints = chunk.match(/^[0-9]+\n/);
-              //numTotalPoints += parseInt(numPoints);
-
-              // trim trailing spaces
-              chunk = chunk.replace(/\s+$/,"");
-              
-              // trim leading spaces
-              chunk = chunk.replace(/^\s+/,"");
-
-              // find out how many columns per line
-              var firstline = chunk.split(/\n/, 1);
-              var numActualColumns = firstline[0].split(" ").length;
-
-              // split on white space
-              chunk = chunk.split(/\s+/);
-
-              const numValuesPerLine = numActualColumns;
-              var numVerts = chunk.length/numValuesPerLine;
+			  // find out how many lines there are; this is # of points	
+			  lines = chunk.split(/\n/);
+              var numVerts = lines.length; 
               numParsedPoints += numVerts;
-              
+              	
 		      // we use interleaved array to reduce number of Draw calls from 2 to 1
 		      var elementSize = 3 * Float32Array.BYTES_PER_ELEMENT + 
-					  			4 * Uint8Array.BYTES_PER_ELEMENT;
+			  	  	  			4 * Uint8Array.BYTES_PER_ELEMENT;
 
 		      var buf = new ArrayBuffer(numVerts * elementSize);
 		      var coords = new Float32Array(buf);
@@ -189,65 +177,71 @@ var PTSParser = (function() {
 			  //var intensityOffset = elementSize / Int16Array.BYTES_PER_ELEMENT;
 			  var rawIntensity, normIntensity;
 
-		      var hsv = new Object();
+			  for (var j=0; j<lines.length; j++) {
 
-              // x y z intensity r g b
-              for (var i=0, j=0; i<chunk.length; i += numValuesPerLine, j++){
+              	// each line should look like this: x y z intensity r g b
+				// r g b are optional
 
-				coords[0+j*coordOffset] = parseFloat(chunk[i]);   // X
-                coords[1+j*coordOffset] = parseFloat(chunk[i+1]); // Y
-                coords[2+j*coordOffset] = parseFloat(chunk[i+2]); // Z
+				var field = lines[j].replace(/\s+$/,"").split(/\s+/);  // remove trailing space then split on white space
 
-                switch (numActualColumns) {
-					case 7: // color
-						colors[0+j*colorOffset] = parseInt(chunk[i+4]); // R
-						colors[1+j*colorOffset] = parseInt(chunk[i+5]); // G
-						colors[2+j*colorOffset] = parseInt(chunk[i+6]); // B
-						colors[3+j*colorOffset] = 255; // padding
-						break;
+				// if line has too few or too many fields, skip it
+				if ((field.length < 3) || (field.length > 8))
+					continue;
 
-					case 4: // intensity
-						rawIntensity = parseInt(chunk[i+3]);
-						//intens[0+j*intensityOffset] = rawIntensity;
+				// parse coodinates
+				coords[0+j*coordOffset] = parseFloat(field[0]); // X
+				coords[1+j*coordOffset] = parseFloat(field[1]); // Y
+				coords[2+j*coordOffset] = parseFloat(field[2]); // Z
 
-						normIntensity = (rawIntensity+2048)/4096;
+				switch (field.length) {
+			  	  	case 7: // color
+					    colors[0+j*colorOffset] = parseInt(field[4]); // R
+					    colors[1+j*colorOffset] = parseInt(field[5]); // G
+					    colors[2+j*colorOffset] = parseInt(field[6]); // B
+					    colors[3+j*colorOffset] = 255; // padding
+			  	  		break;
 
-						// convert intensity to rgb
-						// and then add r,g,b to the interleaved array
-						hsv.s = 0.9;  // arbitrary constant
-						hsv.v = 1;	// arbitrary constant
-						hsv.h = 360 * normIntensity; // hue is between 0 - 359 degrees
-				 		var rgb = hsv2rgb(hsv);
+			  	  	case 4: // intensity
+		      			var hsv = new Object();
+			  	  		var rawIntensity = parseInt(field[3]);
+			  	  		//intens[0+j*intensityOffset] = rawIntensity;
 
-						colors[0+j*colorOffset] = Math.round(rgb.r*255); // R
-						colors[1+j*colorOffset] = Math.round(rgb.g*255); // G
-						colors[2+j*colorOffset] = Math.round(rgb.b*255); // B
-						colors[3+j*colorOffset] = 255; // padding
+			  	  		var normIntensity = (rawIntensity+2048)/4096;
 
-						break;
+			  	  		// convert intensity to rgb
+			  	  		// and then add r,g,b to the interleaved array
+			  	  		hsv.s = 0.9;  // arbitrary constant
+			  	  		hsv.v = 1;	// arbitrary constant
+			  	  		hsv.h = 360 * normIntensity; // hue is between 1 - 360 degrees
+			  	   		var rgb = hsv2rgb(hsv);
 
-					default: // fixed intensity
-						colors[0+j*colorOffset] = 0;
-						colors[1+j*colorOffset] = 128;
-						colors[2+j*colorOffset] = 0;
-						colors[3+j*colorOffset] = 255; // padding
-				} // switch
+			  	  		colors[0+j*colorOffset] = Math.round(rgb.r*255); // R
+			  	  		colors[1+j*colorOffset] = Math.round(rgb.g*255); // G
+			  	  		colors[2+j*colorOffset] = Math.round(rgb.b*255); // B
+			  	  		colors[3+j*colorOffset] = 255; // padding
 
-              } // for
-                    
-              var attributes = {};
+			  	  		break;
 
-              if (coords) { attributes["ps_Vertex"] = buf; }
+			  	  	default: // set color to green for point with unusual number of fields
+			  	  		colors[0+j*colorOffset] = 0;
+			  	  		colors[1+j*colorOffset] = 128;
+			  	  		colors[2+j*colorOffset] = 0;
+			  	  		colors[3+j*colorOffset] = 255; // padding
 
-              parse(FR.parser, attributes);
-            }
-        };
+			  	} // switch
+			  }  // for - lines
+			  
+			  var attributes = {};
+			  if (coords) { attributes["ps_Vertex"] = buf; }
+			  parse(FR.parser, attributes);
+
+            } // if - chunk
+        }; // function - parseChunk
 
         FR.readAsBinaryString(blobSlice.call(file, start, end));
 
-	// this uses more memory than readAsBinaryString
-        //FR.readAsText(blobSlice.call(file, start, end));       
-      }
+        //FR.readAsText(blobSlice.call(file, start, end));       // this uses more memory than readAsBinaryString
+      } // function - loadNext
 
       loadNext();
 
