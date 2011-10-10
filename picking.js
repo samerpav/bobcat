@@ -15,8 +15,6 @@ var up = V3.$( 0, 1, 0);
 
 var isInPickMode = false;
 
-var originalCenter = [];
-
 const KEY_ESC = 27;
 
 function zoom(amt){
@@ -93,8 +91,8 @@ function keyDown(){
 
   // 6 - for debugging
   if (ps.key == 54) { 
-	console.log(lion.boundingBoxMin[0].toFixed(2) + ' ' + lion.boundingBoxMin[1].toFixed(2) + ' ' + lion.boundingBoxMin[2].toFixed(2));
-	console.log(lion.boundingBoxMax[0].toFixed(2) + ' ' + lion.boundingBoxMax[1].toFixed(2) + ' ' + lion.boundingBoxMax[2].toFixed(2));
+	//console.log(lion.boundingBoxMin[0].toFixed(2) + ' ' + lion.boundingBoxMin[1].toFixed(2) + ' ' + lion.boundingBoxMin[2].toFixed(2));
+	//console.log(lion.boundingBoxMax[0].toFixed(2) + ' ' + lion.boundingBoxMax[1].toFixed(2) + ' ' + lion.boundingBoxMax[2].toFixed(2));
 	//console.log(cam.getMatrix().slice(0,4));
 	//console.log(cam.getMatrix().slice(4,8));
 	//console.log(cam.getMatrix().slice(8,12));
@@ -103,14 +101,12 @@ function keyDown(){
 	console.log('cam.position = ' + cam.position[0].toFixed(2) + ' ' 
 								  + cam.position[1].toFixed(2) + ' ' 
 								  + cam.position[2].toFixed(2) );
+	var oc = lion.getOriginalCenter();
+	console.log('orig center = ' + oc[0] + ' ' + oc[1]+ ' ' + oc[2]); 
     var c = lion.getCenter();
-    console.log('current center = ' + c[0] + ' ' + c[1]+ ' ' + c[2]);
-    //console.log('current center = ' + c[0].toFixed(2) + ' ' 
-	//						 + c[1].toFixed(2) + ' ' 
-	//						 + c[2].toFixed(2)  );
+    console.log('current center = ' + c[0].toFixed(2) + ' ' + c[1].toFixed(2) + ' ' + c[2].toFixed(2)  );
   }
 
-  //if (ps.key == 54) { lion.setCenter( originalCenter ); }
 
   // 7
   // switch between Z-up and Y-up
@@ -125,7 +121,7 @@ function keyDown(){
 	  // the transformation matrix requires that
 	  // we swap center-Y and center-Z 
 	  // otherwise, the camera won't point in the correct direction
-      //lion.setCenter([360, 23, -2147]);
+      lion.setCenter([-lion.originalCenter[0], lion.originalCenter[2], lion.originalCenter[1]]);
 	}
 	else {
 	  console.log('y-up');
@@ -133,9 +129,9 @@ function keyDown(){
                                0, 1, 0, 0, 
                                0, 0, 1, 0, 
                                0, 0, 0, 1);
-	  //
+
 	  // revert center back to its original value
-      //lion.setCenter([originalCenter[0], originalCenter[1], originalCenter[2]]);
+      lion.setCenter([lion.originalCenter[0], lion.originalCenter[1], lion.originalCenter[2]]);
 	}
   } // 7
 }
@@ -209,14 +205,6 @@ function start(){
   input = document.getElementById('fileinput');
   selectedFile = input.files[0];
   lion = ps.load(selectedFile);
-
-  //originalCenter = lion.getCenter();
-  //console.log(originalCenter);
-
-  // the transformation matrix requires that
-  // we swap center-Y and center-Z 
-  // otherwise, the camera won't point in the correct direction
-  //lion.setCenter([-originalCenter[0], originalCenter[2], originalCenter[1]]);
 
   //lion = ps.load("/clouds/parking-lot-3M.pts"); // old way for loading pts file
 }
