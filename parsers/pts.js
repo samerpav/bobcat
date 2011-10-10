@@ -60,9 +60,9 @@ var PTSParser = (function() {
     
     var __empty_func = function(){};
   
-    var start = config.start || __empty_func;
+    var parseStart = config.start || __empty_func;
     var parse = config.parse || __empty_func;
-    var end = config.end || __empty_func;
+    var parseFinished = config.end || __empty_func;
     
     const VERSION = "0.1";
     
@@ -117,14 +117,14 @@ var PTSParser = (function() {
         start = _chunk * chunkSize;
         end = start + chunkSize >= file.size ? file.size : start + chunkSize;
 	
-        //FR.onloadstart = function(e){
-        //    start(FR.parser);
-        //};
+        FR.onloadstart = function(e){
+			console.log('pts.js: parse started');
+            parseStart(FR.parser);
+        };
 
         FR.onload = function(e) {      
 
 			if (++_chunk <= chunks) {
-
 				rawData = FR.result;
 				lastNLIndex = rawData.lastIndexOf('\n');
 				//console.log('partial = ' + partialData);        // debugging - previous chunk's incomplete last line
@@ -143,6 +143,10 @@ var PTSParser = (function() {
 				loadNext(); // shortcut here
 				data = null;
           	} // if _chunk
+			else {
+				console.log('pts.js: parse finished');
+				parseFinished(FR.parser);
+			}
         }; // onload
 
         FR.parseChunk = function(chunk) {
