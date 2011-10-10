@@ -555,9 +555,14 @@ var PointStream = (function() {
 		pc.boundingBoxMax[2] = Math.max(pc.boundingBoxMax[2], coords[j+2]);
       }
 
-      pc.center[0] = (pc.boundingBoxMax[0] + pc.boundingBoxMin[0])/2;
-      pc.center[1] = (pc.boundingBoxMax[1] + pc.boundingBoxMin[1])/2;
-      pc.center[2] = (pc.boundingBoxMax[2] + pc.boundingBoxMin[2])/2;
+	  /*
+	   * default transformation matrix (as defined in UpAxisMatrix) is to convert z-up to y-up
+	   * So we have to do the same thing for point cloud's center coordinate
+	   * without this center coor's transform, point cloud that is located far from 0,0,0 won't be visible in camera's view point
+	  */
+      pc.center[0] = -(pc.boundingBoxMax[0] + pc.boundingBoxMin[0])/2;
+      pc.center[2] = (pc.boundingBoxMax[1] + pc.boundingBoxMin[1])/2;
+      pc.center[1] = (pc.boundingBoxMax[2] + pc.boundingBoxMin[2])/2;
 
       pc.radius = Math.max(pc.boundingBoxMax[0]-pc.center[0], pc.boundingBoxMax[2]-pc.center[2]);
 
@@ -565,15 +570,14 @@ var PointStream = (function() {
         
     //The parser will call this when the file is done being downloaded.
     function loadedCallback(parser){
-    
-      // We may have several point clouds streaming.
       var parserIndex = getParserIndex(parser);
-      
-      // Create a short alias.
       var pc = pointClouds[parserIndex];
+
+	  pc.originalCenter = pc.center;
+	  //console.log('pc.originalCenter = ' + pc.originalCenter);
       
-      //pc.status = COMPLETE;
-      //pc.progress = parser.progress;
+      pc.status = COMPLETE;
+      pc.progress = 100;
     }
     
     function renderLoop(){
@@ -1572,6 +1576,7 @@ var PointStream = (function() {
   
 		addedVertices: [0, 0, 0],
 		center: [0, 0, 0],
+		originalCenter: [0, 0, 0],
 		boundingBoxMax: [-1000000, -10000, -1000000],
 		boundingBoxMin: [1000000, 10000, 1000000],
 		radius: 0,
@@ -1579,6 +1584,7 @@ var PointStream = (function() {
 
 		getCenter: function(){ return this.center; },
 		setCenter: function(c){ this.center = c; },
+		getOriginalCenter: function() { return this.originalCenter; },
 		getBoundingBoxMax: function() { return this.boundingBoxMax; },
 		getBoundingBoxMin: function() { return this.boundingBoxMin; },
 		getRadius: function () { return this.radius; },
