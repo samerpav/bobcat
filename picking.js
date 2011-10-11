@@ -15,6 +15,8 @@ var up = V3.$( 0, 1, 0);
 
 var isInPickMode = false;
 
+var isOrthoMode = false;
+
 const KEY_ESC = 27;
 
 function zoom(amt){
@@ -44,6 +46,11 @@ function mouseReleased(){
 }
 
 function keyDown(){
+
+/*
+ *     ps.key is ASCII, not javascript keycode!!!
+ */
+
   if(ps.key == KEY_ESC){
     ps.stop("/clouds/parking-lot.pts");
   }
@@ -81,6 +88,24 @@ function keyDown(){
      // need to do this in 2 steps. first call aligns to Z then align to Up
      cam.setPosition([0, 0, -1]);
      cam.setPosition(zoomFitCamPos);
+  }
+
+  // o
+  if (ps.key == 111) {
+	isOrthoMode=true; 
+  	ps.ortho();
+  	ps.scale(30, 30, 30);
+	ps.attenuation(10, 0, 0);
+  	ps.pointSize(5);
+  }
+  
+  // p
+  if (ps.key == 112) {
+	isOrthoMode=false; 
+	ps.perspective();
+	ps.scale(1,1,1);
+	ps.attenuation(0, 0, 0);
+	ps.pointSize(0.2);
   }
 
   if (ps.key == 49) cam.setPosition( [10, 0, 0] ); // 1
@@ -166,13 +191,12 @@ function render() {
 	}	
   } // if-isRightDragging
 
-  //
-  //         for ortho mode
-  //
-  //ps.ortho();
-  //ps.scale(30, 30, 30);
-  //ps.attenuation(10, 0, 0);
-  //ps.pointSize(5);
+  if (isOrthoMode===true) {
+  	ps.ortho();
+  	ps.scale(30, 30, 30);
+	ps.attenuation(10, 0, 0);
+  	ps.pointSize(5);
+  }
 
   var c = lion.getCenter();
   ps.multMatrix(M4x4.makeLookAt(cam.position, cam.direction, cam.up));
@@ -231,13 +255,6 @@ function startServer(){
 
   lion = ps.load('testcloud.pointcloud');
 }
-
-
-
-
-
-
-
 
   var pMatrixInv;
   function perspectiveInv(fovy, aspect, znear, zfar) {
