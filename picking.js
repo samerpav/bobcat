@@ -2,7 +2,7 @@ var ps;
 var lion;
 
 // Create an orbit camera halfway between the closest and farthest point
-var cam = new OrbitCam({closest:0.1, farthest:5000, distance: 10});
+var cam = new OrbitCam({closest:0.1, farthest:100000, distance: 10});
 var rotationStartCoords = [0, 0];
 var isDragging = false;
 
@@ -91,21 +91,15 @@ function keyDown(){
   }
 
   // o
-  if (ps.key == 111) {
-	isOrthoMode=true; 
-  	ps.ortho();
-  	ps.scale(30, 30, 30);
-	ps.attenuation(10, 0, 0);
-  	ps.pointSize(5);
-  }
+  if (ps.key == 111)  isOrthoMode=true; 
   
   // p
   if (ps.key == 112) {
+	ps.pointSize(0.2);		// must set pointSize BEFORE calling ps.perspective!
 	isOrthoMode=false; 
 	ps.perspective();
 	ps.scale(1,1,1);
-	ps.attenuation(0, 0, 0);
-	ps.pointSize(0.2);
+	//ps.attenuation(0, 0, 0); // don't think we need this 
   }
 
   if (ps.key == 49) cam.setPosition( [10, 0, 0] ); // 1
@@ -116,8 +110,8 @@ function keyDown(){
 
   // 6 - for debugging
   if (ps.key == 54) { 
-	//console.log(lion.boundingBoxMin[0].toFixed(2) + ' ' + lion.boundingBoxMin[1].toFixed(2) + ' ' + lion.boundingBoxMin[2].toFixed(2));
-	//console.log(lion.boundingBoxMax[0].toFixed(2) + ' ' + lion.boundingBoxMax[1].toFixed(2) + ' ' + lion.boundingBoxMax[2].toFixed(2));
+	console.log(lion.boundingBoxMin[0].toFixed(2) + ' ' + lion.boundingBoxMin[1].toFixed(2) + ' ' + lion.boundingBoxMin[2].toFixed(2));
+	console.log(lion.boundingBoxMax[0].toFixed(2) + ' ' + lion.boundingBoxMax[1].toFixed(2) + ' ' + lion.boundingBoxMax[2].toFixed(2));
 	//console.log(cam.getMatrix().slice(0,4));
 	//console.log(cam.getMatrix().slice(4,8));
 	//console.log(cam.getMatrix().slice(8,12));
@@ -126,8 +120,9 @@ function keyDown(){
 	console.log('cam.position = ' + cam.position[0].toFixed(2) + ' ' 
 								  + cam.position[1].toFixed(2) + ' ' 
 								  + cam.position[2].toFixed(2) );
-	var oc = lion.getOriginalCenter();
-	console.log('orig center = ' + oc[0] + ' ' + oc[1]+ ' ' + oc[2]); 
+	console.log('cam.distance = ' + cam.distance.toFixed(2));
+	//var oc = lion.getOriginalCenter();0
+	//console.log('orig center = ' + oc[0] + ' ' + oc[1]+ ' ' + oc[2]); 
     var c = lion.getCenter();
     console.log('current center = ' + c[0].toFixed(2) + ' ' + c[1].toFixed(2) + ' ' + c[2].toFixed(2)  );
   }
@@ -159,6 +154,11 @@ function keyDown(){
       lion.setCenter([lion.originalCenter[0], lion.originalCenter[1], lion.originalCenter[2]]);
 	}
   } // 7
+
+  // back slash \
+  if (ps.key == 92) {
+     cam.setPosition([0, 0, 100]);
+  }
 }
 
 function Upload() { ps.upload(lion, 'testcloud'); }
@@ -193,9 +193,18 @@ function render() {
 
   if (isOrthoMode===true) {
   	ps.ortho();
-  	ps.scale(30, 30, 30);
-	ps.attenuation(10, 0, 0);
-  	ps.pointSize(5);
+	var dist = cam.distance;
+	var sc = 400; // magic number... may be aspect-ratio specific
+	var scaleFactor = 1/dist*sc;
+  	ps.scale(scaleFactor, scaleFactor, scaleFactor);
+	
+	//
+	// don't think I need any of this crap
+	//
+	//var c = cam.position;
+    //cam.setPosition( V3.scale(c, 1/30) );
+	//ps.attenuation(10, 0, 0); // don't think we need this
+  	//ps.pointSize(5);
   }
 
   var c = lion.getCenter();
