@@ -110,12 +110,12 @@ function keyDown(){
 
   // 6 - for debugging
   if (ps.key == 54) { 
-	console.log(lion.boundingBoxMin[0].toFixed(2) + ' ' + lion.boundingBoxMin[1].toFixed(2) + ' ' + lion.boundingBoxMin[2].toFixed(2));
-	console.log(lion.boundingBoxMax[0].toFixed(2) + ' ' + lion.boundingBoxMax[1].toFixed(2) + ' ' + lion.boundingBoxMax[2].toFixed(2));
-	//console.log(cam.getMatrix().slice(0,4));
-	//console.log(cam.getMatrix().slice(4,8));
-	//console.log(cam.getMatrix().slice(8,12));
-	//console.log(cam.getMatrix().slice(12,16));
+	//console.log(lion.boundingBoxMin[0].toFixed(2) + ' ' + lion.boundingBoxMin[1].toFixed(2) + ' ' + lion.boundingBoxMin[2].toFixed(2));
+	//console.log(lion.boundingBoxMax[0].toFixed(2) + ' ' + lion.boundingBoxMax[1].toFixed(2) + ' ' + lion.boundingBoxMax[2].toFixed(2));
+	console.log(cam.getMatrix().slice(0,4));
+	console.log(cam.getMatrix().slice(4,8));
+	console.log(cam.getMatrix().slice(8,12));
+	console.log(cam.getMatrix().slice(12,16));
 	//console.log('radius = ' + lion.radius);
 	console.log('cam.position = ' + cam.position[0].toFixed(2) + ' ' 
 								  + cam.position[1].toFixed(2) + ' ' 
@@ -175,19 +175,26 @@ function render() {
   } // if-isDragging
 
   if (isRightDragging === true) {
-        var offsetX = ps.mouseX - rotationStartCoords[0];
-        var offsetY = ps.mouseY - rotationStartCoords[1];
+	var offsetX = ps.mouseX - rotationStartCoords[0];
+	var offsetY = ps.mouseY - rotationStartCoords[1];
 	rotationStartCoords = [ps.mouseX, ps.mouseY];
 
 	if ((offsetX != 0) || (offsetY !=0)) {
-	   HPanning = V3.cross(cam.direction, up);
-	   VPanning = V3.cross(cam.direction, HPanning);
-	   	   
-	   var newPos = V3.add(lion.getCenter(), V3.scale(HPanning, -offsetX/20));
-	   newPos = V3.add(newPos, V3.scale(VPanning, -offsetY/20)); 
+	  	HPanning = V3.cross(cam.direction, up);
 
-	   var curCen = lion.getCenter();
-	   lion.setCenter([newPos[0], newPos[1], newPos[2]]);
+		// finally i fixed the damn gimbal lock problem with these 4 lines!!
+		if (V3.length(HPanning).toFixed(2)==0) {
+		  var camLeft = cam.getMatrix();
+	  	  HPanning = V3.$(-camLeft[0], camLeft[1], -camLeft[2]);
+		}
+
+	  	VPanning = V3.cross(cam.direction, HPanning);
+
+	  var newPos = V3.add(lion.getCenter(), V3.scale(HPanning, -offsetX/20));
+	  newPos = V3.add(newPos, V3.scale(VPanning, -offsetY/20)); 
+	  
+	  var curCen = lion.getCenter();
+	  lion.setCenter([newPos[0], newPos[1], newPos[2]]);
 	}	
   } // if-isRightDragging
 
