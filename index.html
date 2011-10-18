@@ -17,11 +17,12 @@
   <input type='file' id='fileinput' value='' onchange='start();'>
   <button type="button" onclick='Upload();'>Upload</button>
   <button type="button" onclick='startServer();'>Load from Server</button>
-  <button type="button" onclick='test();'>test</button>
-  
-  <br>
 
-  <div id="abc"> </div>
+  <!-- <button type="button" onclick='test();'>test</button> -->
+  
+  <div id="progress_bar"><div class="percent">0%</div></div>
+
+  <br>
 
   <canvas id="canvas" width="800" height="500"></canvas><br />
 
@@ -33,8 +34,7 @@
 
 </html>
 
-<script>
-
+//<script>
 //function test() {
 //
 //	document.getElementById('abc').innerHTML = '';
