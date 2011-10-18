@@ -193,7 +193,6 @@ function render() {
 	  var newPos = V3.add(lion.getCenter(), V3.scale(HPanning, -offsetX/20));
 	  newPos = V3.add(newPos, V3.scale(VPanning, -offsetY/20)); 
 	  
-	  var curCen = lion.getCenter();
 	  lion.setCenter([newPos[0], newPos[1], newPos[2]]);
 	}	
   } // if-isRightDragging
