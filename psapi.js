@@ -169,6 +169,8 @@ var PointStream = (function() {
 
     console = window.console;
     
+	var progress = document.querySelector('.percent');
+
     /**
       @private
       
@@ -534,6 +536,9 @@ var PointStream = (function() {
       pc.status = STREAMING;
       pc.progress = parser.progress;
 
+      progress.style.width = pc.progress + '%';
+      progress.textContent = pc.progress + '%';
+
       pc.numPoints = parser.numParsedPoints;
       
       if (!pc.attributes['ps_Vertex']){
@@ -578,6 +583,9 @@ var PointStream = (function() {
       
       pc.status = COMPLETE;
       pc.progress = 100;
+
+      progress.style.width = '100%';
+      progress.textContent = '100%';
     }
     
     function renderLoop(){
