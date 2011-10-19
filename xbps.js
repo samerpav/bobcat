@@ -14,4 +14,5 @@ ps_include('./libs/mjs.js');
 ps_include('parsers/asc.js');
 ps_include('parsers/psi.js');
 ps_include('parsers/pts.js');
+ps_include('parsers/ptx.js');
 ps_include('parsers/pointcloud.js');
