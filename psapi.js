@@ -55,6 +55,7 @@ var PointStream = (function() {
     //registeredParsers["psi"] = PSIParser;
     registeredParsers["pts"] = PTSParser;
     registeredParsers["pointcloud"] = PointCloudParser;
+    registeredParsers["ptx"] = PTXParser;
     //registeredParsers["ply"] = PLYParser;
     
     var VERSION  = "0.7";

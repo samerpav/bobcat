@@ -1,11 +1,12 @@
-<style>
   #progress_bar {
+	position: absolute; top:0px; left:600px;
     margin: 10px 0;
     padding: 3px;
-    border: 1px solid #000;
+	width: 200px;
+    border: 1px solid #ffffff;
     font-size: 14px;
     clear: both;
-    opacity: 0;
+    opacity: 1;
     -moz-transition: opacity 1s linear;
     -o-transition: opacity 1s linear;
     -webkit-transition: opacity 1s linear;
@@ -18,7 +19,6 @@
     height: auto;
     width: 0;
   }
-</style>
 
 /* prevent the window scrollbars from appearing
 which conflict with zooming.*/
