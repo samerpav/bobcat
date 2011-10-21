@@ -1558,6 +1558,8 @@ var PointStream = (function() {
 	else if (typeof path==='object') {
 	  if (path.fileName.indexOf('.pts') > 0)
 	    extension = 'pts';
+	  else if (path.fileName.indexOf('.ptx') > 0)
+		extension = 'ptx';
 	}
 
 	if (!registeredParsers[extension]) {
