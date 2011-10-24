@@ -16,15 +16,18 @@ var up = V3.$( 0, 1, 0);
 var isInPickMode = false;
 
 var isOrthoMode = false;
+var NeedRender;
 
 const KEY_ESC = 27;
 
 function zoom(amt){
   if(amt < 0){
     cam.goCloser(-amt*2);
+	NeedRender = true;
   }
   else{
     cam.goFarther(amt*2);
+	NeedRender = true;
   }
 }
 
@@ -46,10 +49,9 @@ function mouseReleased(){
 }
 
 function keyDown(){
+  // ps.key is ASCII, not javascript keycode!!!
 
-/*
- *     ps.key is ASCII, not javascript keycode!!!
- */
+  NeedRender = true;
 
   if(ps.key == KEY_ESC){
     ps.stop("/clouds/parking-lot.pts");
@@ -163,7 +165,9 @@ function keyDown(){
 
 function Upload() { ps.upload(lion, 'testcloud'); }
 
+
 function render() {
+
 
   if (isDragging === true){		
 	var deltaX = ps.mouseX - rotationStartCoords[0];
@@ -172,6 +176,9 @@ function render() {
 
 	cam.yaw(-deltaX * 0.015); // 0.015 indicates how fast yaw is done
 	cam.pitch(deltaY * 0.015);
+
+	NeedRender = true;
+
   } // if-isDragging
 
   if (isRightDragging === true) {
@@ -194,8 +201,11 @@ function render() {
 	  newPos = V3.add(newPos, V3.scale(VPanning, -offsetY/20)); 
 	  
 	  lion.setCenter([newPos[0], newPos[1], newPos[2]]);
+
+	  NeedRender = true;
 	}	
   } // if-isRightDragging
+
 
   if (isOrthoMode===true) {
   	ps.ortho();
@@ -203,6 +213,7 @@ function render() {
 	var sc = 400; // magic number... may be aspect-ratio specific
 	var scaleFactor = 1/dist*sc;
   	ps.scale(scaleFactor, scaleFactor, scaleFactor);
+	NeedRender = true;
 	
 	//
 	// don't think I need any of this crap
@@ -213,11 +224,18 @@ function render() {
   	//ps.pointSize(5);
   }
 
+  if (lion.progress < 100) NeedRender = true;
+
+  // if there is no change, skip the render
+  if (!NeedRender) return;
+
   var c = lion.getCenter();
   ps.multMatrix(M4x4.makeLookAt(cam.position, cam.direction, cam.up));
   ps.translate(-cam.position[0]-c[0], -cam.position[1]-c[1], -cam.position[2]-c[2]);
   ps.clear();
   ps.render(lion);
+
+  NeedRender = false;
 
 } // render
 
