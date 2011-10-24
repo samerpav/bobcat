@@ -98,8 +98,6 @@ var PTXParser = (function() {
       var rawData;
       var lastNLIndex;
 	  
-	  var currWidth = 0;
-	  var currHeight = 0;
 	  var currTotalPoints;    // # of points (ie. width * height) in current cloud being parsed 
 	  var currPointsParsed;   // # of points parsed so far in current cloud
 	  var currTranslation;	// translation vector
@@ -179,44 +177,46 @@ var PTXParser = (function() {
 
 			  var j = 0; // line index counter
 
+			  var width,height,t;
+			  var r1,r2,r3;
+
 			  while (j < lines.length) {
 
 				var field = lines[j].replace(/\s+$/,"").split(/\s+/);  // remove trailing space then split on white space
 
 				if (field.length == 1) {
-				  // this indicates we've reached a new cloud, so read the cloud's header here
+				  // this indicates a new cloud, so read the cloud's header here
 
-				  var width = parseInt(field[0]);
-				  console.log('w = ' + width);
+				  width = parseInt(field[0]);
+				  //console.log('w = ' + width);
 
-				  var height = parseInt(lines[j+1].replace(/\s+$/,"").split(/\s+/));
-				  console.log('h = ' + height);
+				  height = parseInt(lines[j+1].replace(/\s+$/,"").split(/\s+/));
+				  //console.log('h = ' + height);
 
 				  // translation vector
-				  var t = lines[j+2].replace(/\s+$/,"").split(/\s+/);
+				  t = lines[j+2].replace(/\s+$/,"").split(/\s+/);
 				  currTranslation = V3.$(t[0], t[1], t[2]); 
 				  //console.log(currTranslation);
 
 				  // rotation matrix
-				  var r1= lines[j+3].replace(/\s+$/,"").split(/\s+/);
-				  var r2= lines[j+4].replace(/\s+$/,"").split(/\s+/);
-				  var r3= lines[j+5].replace(/\s+$/,"").split(/\s+/);
+				  r1= lines[j+3].replace(/\s+$/,"").split(/\s+/);
+				  r2= lines[j+4].replace(/\s+$/,"").split(/\s+/);
+				  r3= lines[j+5].replace(/\s+$/,"").split(/\s+/);
 
 				  currRotation = M4x4.$(r1[0], r1[1], r1[2], 0,
 						  				r2[0], r2[1], r2[2], 0,
 										r3[0], r3[1], r3[2], 0,
 										0, 0, 0, 1);
-
-
 				  //console.log(currRotation);
 
-				  j += 9; // skip all header lines
+				  j += 9; // skip header section
 
 				  continue;
 				}
 
 				// read x y z
-				var rawPoint = V3.$(parseFloat(field[0]), parseFloat(field[1]), parseFloat(field[2]));
+				var rawPoint = [parseFloat(field[0]), parseFloat(field[1]), parseFloat(field[2])];
+				//var rawPoint = V3.$(parseFloat(field[0]), parseFloat(field[1]), parseFloat(field[2]));
 
 				// skip empty point
 				if (V3.length(rawPoint) == 0) {
@@ -229,53 +229,48 @@ var PTXParser = (function() {
 
 				//console.log(transformedPoint[0].toFixed(2) + ' ' + transformedPoint[1].toFixed(2) + ' ' + transformedPoint[2].toFixed(2));
 
-				// parse coodinates
+				// apply translation vector and set coordinates
 				coords[0+j*coordOffset] = transformedPoint[0]+currTranslation[0];
 				coords[1+j*coordOffset] = transformedPoint[1]+currTranslation[1];
 				coords[2+j*coordOffset] = transformedPoint[2]+currTranslation[2];
 
-			  	colors[0+j*colorOffset] = 0;
-			  	colors[1+j*colorOffset] = 128;
-			  	colors[2+j*colorOffset] = 0;
-			  	colors[3+j*colorOffset] = 255; // padding
+				switch (field.length) {
+			  	  	case 7: // color
+					    colors[0+j*colorOffset] = parseInt(field[4]); // R
+					    colors[1+j*colorOffset] = parseInt(field[5]); // G
+					    colors[2+j*colorOffset] = parseInt(field[6]); // B
+					    colors[3+j*colorOffset] = 255; // padding
+			  	  		break;
 
-				//switch (field.length) {
-			  	//  	case 7: // color
-				//	    colors[0+j*colorOffset] = parseInt(field[4]); // R
-				//	    colors[1+j*colorOffset] = parseInt(field[5]); // G
-				//	    colors[2+j*colorOffset] = parseInt(field[6]); // B
-				//	    colors[3+j*colorOffset] = 255; // padding
-			  	//  		break;
+			  	  	case 4: // intensity
+		      			var hsv = new Object();
+			  	  		var rawIntensity = parseInt(field[3]);
+			  	  		//intens[0+j*intensityOffset] = rawIntensity;
 
-			  	//  	case 4: // intensity
-		      	//		var hsv = new Object();
-			  	//  		var rawIntensity = parseInt(field[3]);
-			  	//  		//intens[0+j*intensityOffset] = rawIntensity;
+			  	  		var normIntensity = (rawIntensity+2048)/4096;
 
-			  	//  		var normIntensity = (rawIntensity+2048)/4096;
+			  	  		// convert intensity to rgb
+			  	  		// and then add r,g,b to the interleaved array
+			  	  		hsv.s = 0.9;  // arbitrary constant
+			  	  		hsv.v = 1;	// arbitrary constant
+			  	  		hsv.h = 360 * normIntensity; // hue is between 1 - 360 degrees
+			  	   		var rgb = hsv2rgb(hsv);
 
-			  	//  		// convert intensity to rgb
-			  	//  		// and then add r,g,b to the interleaved array
-			  	//  		hsv.s = 0.9;  // arbitrary constant
-			  	//  		hsv.v = 1;	// arbitrary constant
-			  	//  		hsv.h = 360 * normIntensity; // hue is between 1 - 360 degrees
-			  	//   		var rgb = hsv2rgb(hsv);
+			  	  		colors[0+j*colorOffset] = Math.round(rgb.r*255); // R
+			  	  		colors[1+j*colorOffset] = Math.round(rgb.g*255); // G
+			  	  		colors[2+j*colorOffset] = Math.round(rgb.b*255); // B
+			  	  		colors[3+j*colorOffset] = 255; // padding
 
-			  	//  		colors[0+j*colorOffset] = Math.round(rgb.r*255); // R
-			  	//  		colors[1+j*colorOffset] = Math.round(rgb.g*255); // G
-			  	//  		colors[2+j*colorOffset] = Math.round(rgb.b*255); // B
-			  	//  		colors[3+j*colorOffset] = 255; // padding
+			  	  		break;
 
-			  	//  		break;
+			  	  	default: // set color to green for point with unusual number of fields
+			  	  		colors[0+j*colorOffset] = 0;
+			  	  		colors[1+j*colorOffset] = 128;
+			  	  		colors[2+j*colorOffset] = 0;
+			  	  		colors[3+j*colorOffset] = 255; // padding
 
-			  	//  	default: // set color to green for point with unusual number of fields
-			  	//  		colors[0+j*colorOffset] = 0;
-			  	//  		colors[1+j*colorOffset] = 128;
-			  	//  		colors[2+j*colorOffset] = 0;
-			  	//  		colors[3+j*colorOffset] = 255; // padding
-
-			  	//} // switch
-				//
+			  	} // switch
+				
 
 				j++;
 
