@@ -1,18 +1,5 @@
-/*
-  Copyright (c) 2010  Seneca College
-  MIT LICENSE
-*/
-/**
-  @class XB PointStream is a WebGL library designed to efficiently stream and
-  render point cloud data in a canvas element.
-  
-  @version 0.7
-*/
 var PointStream = (function() {
 
-  /**
-    @private
-  */
   function PointStream() {
     
     // Intentionally left undefined
@@ -229,6 +216,11 @@ var PointStream = (function() {
       @param {String} varName
       @param {Number} size
       @param {} VBO
+
+
+	  I don't use this.
+
+
     */
     function vertexAttribPointer(programObj, varName, size, VBO) {
       var varLocation = ctx.getAttribLocation(programObj, varName);
@@ -956,7 +948,42 @@ var PointStream = (function() {
         uniformMatrix(currProgram, "ps_NormalMatrix", false, M4x4.transpose(normalMatrix));
         uniformMatrix(currProgram, "ps_ModelViewMatrix", false, topMatrix);
         uniformMatrix(currProgram, "ps_SwitchUpAxisMatrix", false, this.UpAxisMatrix);
-        
+
+		// draw gnomon
+		var axisX = new Float32Array([0,0,0,
+									  1,0,0,
+									  0,0,0,
+									  0,1,0,
+									  0,0,0,
+									  0,0,1]);
+		var bufLines = ctx.createBuffer();
+        ctx.bindBuffer(ctx.ARRAY_BUFFER, bufLines);
+        ctx.bufferData(ctx.ARRAY_BUFFER, axisX, ctx.STATIC_DRAW);
+
+
+		var colorX = new Uint8Array([255,0,0,
+									 255,0,0,
+									 0,255,0,
+									 0,255,0,
+									 0,0,255,
+									 0,0,255]);
+		var bufColors = ctx.createBuffer();
+        ctx.bindBuffer(ctx.ARRAY_BUFFER, bufColors);
+        ctx.bufferData(ctx.ARRAY_BUFFER, colorX, ctx.STATIC_DRAW);
+
+	    var aaa = ctx.getAttribLocation(currProgram, 'ps_Vertex');
+        ctx.bindBuffer(ctx.ARRAY_BUFFER, bufLines);
+	    ctx.vertexAttribPointer(aaa, 3, ctx.FLOAT, false, 0, 0);  // vertices
+        ctx.enableVertexAttribArray(aaa);
+
+	    var bbb = ctx.getAttribLocation(currProgram, 'ps_Color');
+        ctx.bindBuffer(ctx.ARRAY_BUFFER, bufColors);
+	    ctx.vertexAttribPointer(bbb, 3, ctx.UNSIGNED_BYTE, false, 0, 0);  // colors
+	    ctx.enableVertexAttribArray(bbb);
+
+		ctx.lineWidth(3.0);
+	  	ctx.drawArrays(ctx.LINES, 0, 6);
+
         // We need at least positional data.
         if (pointCloud.attributes['ps_Vertex']) {
 
