@@ -941,21 +941,26 @@ var PointStream = (function() {
       // Don't bother doing any work if we don't have a context yet.
       if (ctx) {
 
+
         // We need to find a way to detect normals. If normals don't exist,
         // we don't need to figure out the normal transformation.
+        //normalMatrix = M4x4.inverseOrthonormal(topMatrix);
+        //uniformMatrix(currProgram, "ps_NormalMatrix", false, M4x4.transpose(normalMatrix));
+
         var topMatrix = this.peekMatrix();
-        normalMatrix = M4x4.inverseOrthonormal(topMatrix);
-        uniformMatrix(currProgram, "ps_NormalMatrix", false, M4x4.transpose(normalMatrix));
         uniformMatrix(currProgram, "ps_ModelViewMatrix", false, topMatrix);
         uniformMatrix(currProgram, "ps_SwitchUpAxisMatrix", false, this.UpAxisMatrix);
 
+		var cor = -topMatrix[14] * 1/20;
+		if (cor < 1) cor = 1;
+
 		// draw gnomon
 		var axisX = new Float32Array([0,0,0,
-									  1,0,0,
+									  cor,0,0,
 									  0,0,0,
-									  0,1,0,
+									  0,cor,0,
 									  0,0,0,
-									  0,0,1]);
+									  0,0,cor]);
 		var bufLines = ctx.createBuffer();
         ctx.bindBuffer(ctx.ARRAY_BUFFER, bufLines);
         ctx.bufferData(ctx.ARRAY_BUFFER, axisX, ctx.STATIC_DRAW);
@@ -981,8 +986,11 @@ var PointStream = (function() {
 	    ctx.vertexAttribPointer(bbb, 3, ctx.UNSIGNED_BYTE, false, 0, 0);  // colors
 	    ctx.enableVertexAttribArray(bbb);
 
-		ctx.lineWidth(3.0);
 	  	ctx.drawArrays(ctx.LINES, 0, 6);
+	    disableVertexAttribPointer(currProgram, 'ps_Vertex');
+	    disableVertexAttribPointer(currProgram, 'ps_Color');
+
+        uniformMatrix(currProgram, "ps_ModelViewMatrix", false, topMatrix);
 
         // We need at least positional data.
         if (pointCloud.attributes['ps_Vertex']) {
