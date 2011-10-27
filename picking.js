@@ -2,7 +2,7 @@ var ps;
 var lion;
 
 // Create an orbit camera halfway between the closest and farthest point
-var cam = new OrbitCam({closest:0.1, farthest:100000, distance: 10});
+var cam = new OrbitCam({closest:0.01, farthest:1000000, distance: 10});
 var rotationStartCoords = [0, 0];
 var isDragging = false;
 
