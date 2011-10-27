@@ -951,7 +951,12 @@ var PointStream = (function() {
         uniformMatrix(currProgram, "ps_ModelViewMatrix", false, topMatrix);
         uniformMatrix(currProgram, "ps_SwitchUpAxisMatrix", false, this.UpAxisMatrix);
 
-		var cor = -topMatrix[14] * 1/20;
+		var cor = 0;
+		if (projectionMatrix[15]==1)  // check if we're in ortho mode by looking at last element in projectionMatrix
+		  cor = -topMatrix[14] * 1/400;
+		else // perspective mode
+		  cor = -topMatrix[14] * 1/20;
+
 		if (cor < 1) cor = 1;
 
 		// draw gnomon
@@ -965,13 +970,9 @@ var PointStream = (function() {
         ctx.bindBuffer(ctx.ARRAY_BUFFER, bufLines);
         ctx.bufferData(ctx.ARRAY_BUFFER, axisX, ctx.STATIC_DRAW);
 
-
-		var colorX = new Uint8Array([255,0,0,
-									 255,0,0,
-									 0,255,0,
-									 0,255,0,
-									 0,0,255,
-									 0,0,255]);
+		var colorX = new Uint8Array([255,0,0, 255,0,0,
+									 0,255,0, 0,255,0,
+									 0,0,255, 0,0,255]);
 		var bufColors = ctx.createBuffer();
         ctx.bindBuffer(ctx.ARRAY_BUFFER, bufColors);
         ctx.bufferData(ctx.ARRAY_BUFFER, colorX, ctx.STATIC_DRAW);
@@ -989,8 +990,6 @@ var PointStream = (function() {
 	  	ctx.drawArrays(ctx.LINES, 0, 6);
 	    disableVertexAttribPointer(currProgram, 'ps_Vertex');
 	    disableVertexAttribPointer(currProgram, 'ps_Color');
-
-        uniformMatrix(currProgram, "ps_ModelViewMatrix", false, topMatrix);
 
         // We need at least positional data.
         if (pointCloud.attributes['ps_Vertex']) {
@@ -1177,7 +1176,7 @@ var PointStream = (function() {
         fovy = 60;
         aspect = width/height;
         near = 0.1;
-        far = 1000;
+        far = 100000; // far plane is 100,000 units !
       }
       
       var ymax = near * Math.tan(fovy * Math.PI / 360);
