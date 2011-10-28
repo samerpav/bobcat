@@ -960,19 +960,46 @@ var PointStream = (function() {
 		if (cor < 1) cor = 1;
 
 		// draw gnomon
-		var axisX = new Float32Array([0,0,0,
-									  cor,0,0,
-									  0,0,0,
-									  0,cor,0,
-									  0,0,0,
-									  0,0,cor]);
+		var axisX = new Float32Array([0,0,0, cor,0,0,
+									  0,0.001,0, cor,0.001,0,
+									  0,0.002,0, cor,0.002,0,
+									  0,0.003,0, cor,0.003,0,
+									  0,0.004,0, cor,0.004,0,
+
+									  0,0,0, 0,cor,0,
+									  0.001,0,0, 0.001,cor,0,
+									  0.002,0,0, 0.002,cor,0,
+									  0.003,0,0, 0.003,cor,0,
+									  0.004,0,0, 0.004,cor,0,
+
+									  0,0,0,     0,0,cor,
+									  0.001,0,0, 0.001,0,cor,
+									  0.002,0,0, 0.002,0,cor,
+									  0.003,0,0, 0.003,0,cor,
+									  0.004,0,0, 0.004,0,cor,
+									  ]);
 		var bufLines = ctx.createBuffer();
         ctx.bindBuffer(ctx.ARRAY_BUFFER, bufLines);
         ctx.bufferData(ctx.ARRAY_BUFFER, axisX, ctx.STATIC_DRAW);
 
 		var colorX = new Uint8Array([255,0,0, 255,0,0,
+									 255,0,0, 255,0,0,
+									 255,0,0, 255,0,0,
+									 255,0,0, 255,0,0,
+									 255,0,0, 255,0,0,
+
 									 0,255,0, 0,255,0,
-									 0,0,255, 0,0,255]);
+									 0,255,0, 0,255,0,
+									 0,255,0, 0,255,0,
+									 0,255,0, 0,255,0,
+									 0,255,0, 0,255,0,
+
+									 0,0,255, 0,0,255,
+									 0,0,255, 0,0,255,
+									 0,0,255, 0,0,255,
+									 0,0,255, 0,0,255,
+									 0,0,255, 0,0,255
+									 ]);
 		var bufColors = ctx.createBuffer();
         ctx.bindBuffer(ctx.ARRAY_BUFFER, bufColors);
         ctx.bufferData(ctx.ARRAY_BUFFER, colorX, ctx.STATIC_DRAW);
@@ -987,7 +1014,7 @@ var PointStream = (function() {
 	    ctx.vertexAttribPointer(bbb, 3, ctx.UNSIGNED_BYTE, false, 0, 0);  // colors
 	    ctx.enableVertexAttribArray(bbb);
 
-	  	ctx.drawArrays(ctx.LINES, 0, 6);
+	  	ctx.drawArrays(ctx.LINES, 0, axisX.length/3);
 	    disableVertexAttribPointer(currProgram, 'ps_Vertex');
 	    disableVertexAttribPointer(currProgram, 'ps_Color');
 
