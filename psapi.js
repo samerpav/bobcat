@@ -2,6 +2,10 @@ var PointStream = (function() {
 
   function PointStream() {
     
+    // size of each vertex in bytes
+	// this is the same as elementSize in parser
+	var vertexSize = 20;
+
     // Intentionally left undefined
     var undef;
     
@@ -274,7 +278,7 @@ var PointStream = (function() {
         
         // length is simply for convenience
         var obj = {
-          length: arr.byteLength/16,
+          length: arr.byteLength/vertexSize,
           VBO: VBO,
           array: arr
         };
@@ -543,7 +547,14 @@ var PointStream = (function() {
       
       var coords = new Float32Array(attributes['ps_Vertex']);
 
-      for (var j=0; j < coords.length; j+=4) {
+	  /*
+	   *     damn step size took me an hour to find and fix
+	   *
+	   *     this step is defined vertex size (currently 20) divided by Float32Array.BYTES_PER_ELEMENT
+	   *
+	  */
+	  var step = vertexSize / Float32Array.BYTES_PER_ELEMENT;
+      for (var j=0; j < coords.length; j+=step) {
 		pc.boundingBoxMin[0] = Math.min(pc.boundingBoxMin[0], coords[j]);
 		pc.boundingBoxMin[1] = Math.min(pc.boundingBoxMin[1], coords[j+1]);
 		pc.boundingBoxMin[2] = Math.min(pc.boundingBoxMin[2], coords[j+2]);
@@ -1029,13 +1040,13 @@ var PointStream = (function() {
 	      // ps_Vertex
               var attribVertex = ctx.getAttribLocation(currProgram, 'ps_Vertex');
               ctx.bindBuffer(ctx.ARRAY_BUFFER, pointCloud.attributes['ps_Vertex'][currVBO].VBO);
-              ctx.vertexAttribPointer(attribVertex, 3, ctx.FLOAT, false, 16, 0);  // vertices
+              ctx.vertexAttribPointer(attribVertex, 3, ctx.FLOAT, false, vertexSize, 0);  // vertices
               ctx.enableVertexAttribArray(attribVertex);
               
 	      // ps_Color
               var attribColor = ctx.getAttribLocation(currProgram, 'ps_Color');
               ctx.bindBuffer(ctx.ARRAY_BUFFER, pointCloud.attributes['ps_Vertex'][currVBO].VBO);
-              ctx.vertexAttribPointer(attribColor, 3, ctx.UNSIGNED_BYTE, true, 16, 12);  // colors
+              ctx.vertexAttribPointer(attribColor, 3, ctx.UNSIGNED_BYTE, true, vertexSize, 16);  // colors
               ctx.enableVertexAttribArray(attribColor);
 
               ctx.drawArrays(ctx.POINTS, 0, arrayOfBufferObjsV[currVBO].length);
