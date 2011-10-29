@@ -110,6 +110,8 @@ var PTSParser = (function() {
       var rawData;
       var lastNLIndex;
 
+	  var octree = [];
+
       function loadNext() {
         var start, end,
         blobSlice = File.prototype.mozSlice || File.prototype.webkitSlice;
@@ -163,18 +165,20 @@ var PTSParser = (function() {
               numParsedPoints += numVerts;
               	
 		      // we use interleaved array to reduce number of Draw calls from 2 to 1
-		      var elementSize = 3 * Float32Array.BYTES_PER_ELEMENT + 
+		      var elementSize = 4 * Float32Array.BYTES_PER_ELEMENT + 
 			  	  	  			4 * Uint8Array.BYTES_PER_ELEMENT;
+
+			  // each vertex uses 20 bytes
+			  // coords has x y z and intensity. each is float32.
 
 		      var buf = new ArrayBuffer(numVerts * elementSize);
 		      var coords = new Float32Array(buf);
-		      var colors = new Uint8Array(buf, 3 * Float32Array.BYTES_PER_ELEMENT);
-		      //var intens = new Int16Array(buf, 3*Float32Array.BYTES_PER_ELEMENT + 4*Uint8Array.BYTES_PER_ELEMENT);
+		      var colors = new Uint8Array(buf, 4 * Float32Array.BYTES_PER_ELEMENT);
 
 	          var coordOffset = elementSize / Float32Array.BYTES_PER_ELEMENT;
 	          var colorOffset = elementSize / Uint8Array.BYTES_PER_ELEMENT;
-			  //var intensityOffset = elementSize / Int16Array.BYTES_PER_ELEMENT;
-			  var rawIntensity, normIntensity;
+			  //var intensityOffset = elementSize / Float32Array.BYTES_PER_ELEMENT;
+			  var rawIntensity;
 
 			  for (var j=0; j<lines.length; j++) {
 
@@ -183,51 +187,43 @@ var PTSParser = (function() {
 
 				var field = lines[j].replace(/\s+$/,"").split(/\s+/);  // remove trailing space then split on white space
 
-				// if line has too few or too many fields, skip it
+				// if line has too few fields, skip it
 				if ((field.length < 3) || (field.length > 8))
-					continue;
+				  continue;
 
-				// parse coodinates
+				// parse coordinates
 				coords[0+j*coordOffset] = parseFloat(field[0]); // X
 				coords[1+j*coordOffset] = parseFloat(field[1]); // Y
 				coords[2+j*coordOffset] = parseFloat(field[2]); // Z
 
-				switch (field.length) {
-			  	  	case 7: // color
-					    colors[0+j*colorOffset] = parseInt(field[4]); // R
-					    colors[1+j*colorOffset] = parseInt(field[5]); // G
-					    colors[2+j*colorOffset] = parseInt(field[6]); // B
-					    colors[3+j*colorOffset] = 255; // padding
-			  	  		break;
+				rawIntensity = parseInt(field[3]);
+				coords[3+j*coordOffset] = parseFloat((rawIntensity+2048)/4096);
 
-			  	  	case 4: // intensity
-		      			var hsv = new Object();
-			  	  		var rawIntensity = parseInt(field[3]);
-			  	  		//intens[0+j*intensityOffset] = rawIntensity;
+				if (field.length>4) { 
+				  colors[0+j*colorOffset] = parseInt(field[4]); // R
+				  colors[1+j*colorOffset] = parseInt(field[5]); // G
+				  colors[2+j*colorOffset] = parseInt(field[6]); // B
+				  //colors[3+j*colorOffset] = 255; // padding
+				}
 
-			  	  		var normIntensity = (rawIntensity+2048)/4096;
+				//var hsv = new Object();
+				//var rawIntensity = parseInt(field[3]);
+				////intens[0+j*intensityOffset] = rawIntensity;
 
-			  	  		// convert intensity to rgb
-			  	  		// and then add r,g,b to the interleaved array
-			  	  		hsv.s = 0.9;  // arbitrary constant
-			  	  		hsv.v = 1;	// arbitrary constant
-			  	  		hsv.h = 360 * normIntensity; // hue is between 1 - 360 degrees
-			  	   		var rgb = hsv2rgb(hsv);
+				//var normIntensity = (rawIntensity+2048)/4096;
 
-			  	  		colors[0+j*colorOffset] = Math.round(rgb.r*255); // R
-			  	  		colors[1+j*colorOffset] = Math.round(rgb.g*255); // G
-			  	  		colors[2+j*colorOffset] = Math.round(rgb.b*255); // B
-			  	  		colors[3+j*colorOffset] = 255; // padding
+				//// convert intensity to rgb
+				//// and then add r,g,b to the interleaved array
+				//hsv.s = 0.9;  // arbitrary constant
+				//hsv.v = 1;	// arbitrary constant
+				//hsv.h = 360 * normIntensity; // hue is between 1 - 360 degrees
+				//var rgb = hsv2rgb(hsv);
 
-			  	  		break;
+				//colors[0+j*colorOffset] = Math.round(rgb.r*255); // R
+				//colors[1+j*colorOffset] = Math.round(rgb.g*255); // G
+				//colors[2+j*colorOffset] = Math.round(rgb.b*255); // B
+				//colors[3+j*colorOffset] = 255; // padding
 
-			  	  	default: // set color to green for point with unusual number of fields
-			  	  		colors[0+j*colorOffset] = 0;
-			  	  		colors[1+j*colorOffset] = 128;
-			  	  		colors[2+j*colorOffset] = 0;
-			  	  		colors[3+j*colorOffset] = 255; // padding
-
-			  	} // switch
 			  }  // for - lines
 			  
 			  var attributes = {};
