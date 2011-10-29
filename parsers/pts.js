@@ -120,7 +120,7 @@ var PTSParser = (function() {
         end = start + chunkSize >= file.size ? file.size : start + chunkSize;
 	
         FR.onloadstart = function(e){
-			console.log('pts.js: parse started');
+			//console.log('pts.js: parse started');
             parseStart(FR.parser);
         };
 
@@ -146,7 +146,7 @@ var PTSParser = (function() {
 				data = null;
           	} // if _chunk
 			else {
-				console.log('pts.js: parse finished');
+				//console.log('pts.js: parse finished');
 				parseFinished(FR.parser);
 			}
         }; // onload
@@ -177,18 +177,23 @@ var PTSParser = (function() {
 
 	          var coordOffset = elementSize / Float32Array.BYTES_PER_ELEMENT;
 	          var colorOffset = elementSize / Uint8Array.BYTES_PER_ELEMENT;
-			  //var intensityOffset = elementSize / Float32Array.BYTES_PER_ELEMENT;
 			  var rawIntensity;
+			  var field = [];
 
 			  for (var j=0; j<lines.length; j++) {
 
               	// each line should look like this: x y z intensity r g b
 				// r g b are optional
 
-				var field = lines[j].replace(/\s+$/,"").split(/\s+/);  // remove trailing space then split on white space
+				field = lines[j].split(/\s+/);  // remove trailing space then split on white space
+
+				// 
+				//    get rid of 'replace' saves 2 seconds on parking-lot 3m points... doesn't seem to cause any new bugs too
+				//
+				//field = lines[j].replace(/\s+$/,"").split(/\s+/);  // remove trailing space then split on white space
 
 				// if line has too few fields, skip it
-				if ((field.length < 3) || (field.length > 8))
+				if (field.length < 3)
 				  continue;
 
 				// parse coordinates
