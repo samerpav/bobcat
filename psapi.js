@@ -136,7 +136,7 @@ var PointStream = (function() {
     "uniform mat4 ps_ProjectionMatrix;" +
     "uniform mat4 ps_SwitchUpAxisMatrix;" +  
 
-    "vec3 HSVtoRGB(float h, float s, float v ) {" + 
+    "vec3 HSVtoRGB(float h, float s, float v) {" + 
     "   int i;" + 
     "   float f, p, q, t;" + 
     "   vec3 res;" + 
@@ -146,44 +146,44 @@ var PointStream = (function() {
     "   p = v * ( 1.0 - s );" + 
     "   q = v * ( 1.0 - s * f );" + 
     "   t = v * ( 1.0 - s * ( 1.0 - f ) );" + 
-    "   switch(i) {" + 
-    "      case 0:" + 
-    "         res.x = v;" + 
-    "         res.y = t;" + 
-    "         res.z = p;" + 
-    "         break;" + 
-    "      case 1:" + 
-    "         res.x = q;" + 
-    "         res.y = v;" + 
-    "         res.z = p;" + 
-    "         break;" + 
-    "      case 2:" + 
-    "         res.x = p;" + 
-    "         res.y = v;" + 
-    "         res.z = t;" + 
-    "         break;" + 
-    "      case 3:" + 
-    "         res.x = p;" + 
-    "         res.y = q;" + 
-    "         res.z = v;" + 
-    "         break;" + 
-    "      case 4:" + 
-    "         res.x = t;" + 
-    "         res.y = p;" + 
-    "         res.z = v;" + 
-    "         break;" + 
-    "      default:" + 
-    "         res.x = v;" + 
-    "         res.y = p;" + 
-    "         res.z = q;" + 
-    "         break;" + 
+
+    "   if (i==0) {" + 
+    "     res.x = v;" + 
+    "     res.y = t;" + 
+    "     res.z = p;" + 
     "   }" + 
+    "   else if (i==1) {" + 
+    "          res.x = q;" + 
+    "          res.y = v;" + 
+    "          res.z = p;" + 
+    "        }" + 
+    "		 else if (i==2) {" + 
+    "         		res.x = p;" + 
+    "         		res.y = v;" + 
+    "         		res.z = t;" + 
+    "         	  }" + 
+    "			  else if (i==3) {" + 
+    "         			 res.x = p;" + 
+    "         			 res.y = q;" + 
+    "         			 res.z = v;" + 
+    "				   }" + 
+    "      			   else if (i==4) {" + 
+    "         				  res.x = t;" + 
+    "         				  res.y = p;" + 
+    "         				  res.z = v;" + 
+    "         				}" + 
+    "      					else {" + 
+    "         					   res.x = v;" + 
+    "         					   res.y = p;" + 
+    "         					   res.z = q;" + 
+    "         					 };" + 
     "   return res;" + 
     "}" + 
 
     "void main(void) {" +
-    "  frontColor = ps_Color;" +
-    //"  frontColor = vec4(ps_Intensity, ps_Intensity, ps_Intensity, 1.0);" + 
+	//"  frontColor = vec4(HSVtoRGB(ps_Intensity*360.0, 1.0, 1.0), 1.0);" + 
+    //"  frontColor = ps_Color;" +
+    "  frontColor = vec4(ps_Intensity, ps_Intensity, ps_Intensity, 1.0);" + 
 
     "  vec4 fixedUpAxisPos4 = ps_SwitchUpAxisMatrix * vec4(ps_Vertex, 1.0);" + 
     "  vec4 ecPos4 = ps_ModelViewMatrix * fixedUpAxisPos4;" +
