@@ -127,6 +127,7 @@ var PointStream = (function() {
 
     "attribute vec3 ps_Vertex;" +
     "attribute vec4 ps_Color;" +
+	"attribute float ps_Intensity;" + 
     
     "uniform float ps_PointSize;" +
     "uniform vec3 ps_Attenuation;" +
@@ -135,8 +136,55 @@ var PointStream = (function() {
     "uniform mat4 ps_ProjectionMatrix;" +
     "uniform mat4 ps_SwitchUpAxisMatrix;" +  
 
+    "vec3 HSVtoRGB(float h, float s, float v ) {" + 
+    "   int i;" + 
+    "   float f, p, q, t;" + 
+    "   vec3 res;" + 
+    "   h /= 60.0;" + 
+    "   i = int(floor( h ));" + 
+    "   f = h - float(i);" + 
+    "   p = v * ( 1.0 - s );" + 
+    "   q = v * ( 1.0 - s * f );" + 
+    "   t = v * ( 1.0 - s * ( 1.0 - f ) );" + 
+    "   switch(i) {" + 
+    "      case 0:" + 
+    "         res.x = v;" + 
+    "         res.y = t;" + 
+    "         res.z = p;" + 
+    "         break;" + 
+    "      case 1:" + 
+    "         res.x = q;" + 
+    "         res.y = v;" + 
+    "         res.z = p;" + 
+    "         break;" + 
+    "      case 2:" + 
+    "         res.x = p;" + 
+    "         res.y = v;" + 
+    "         res.z = t;" + 
+    "         break;" + 
+    "      case 3:" + 
+    "         res.x = p;" + 
+    "         res.y = q;" + 
+    "         res.z = v;" + 
+    "         break;" + 
+    "      case 4:" + 
+    "         res.x = t;" + 
+    "         res.y = p;" + 
+    "         res.z = v;" + 
+    "         break;" + 
+    "      default:" + 
+    "         res.x = v;" + 
+    "         res.y = p;" + 
+    "         res.z = q;" + 
+    "         break;" + 
+    "   }" + 
+    "   return res;" + 
+    "}" + 
+
     "void main(void) {" +
     "  frontColor = ps_Color;" +
+    //"  frontColor = vec4(ps_Intensity, ps_Intensity, ps_Intensity, 1.0);" + 
+
     "  vec4 fixedUpAxisPos4 = ps_SwitchUpAxisMatrix * vec4(ps_Vertex, 1.0);" + 
     "  vec4 ecPos4 = ps_ModelViewMatrix * fixedUpAxisPos4;" +
 
@@ -225,7 +273,6 @@ var PointStream = (function() {
 	  I don't use this.
 
 
-    */
     function vertexAttribPointer(programObj, varName, size, VBO) {
       var varLocation = ctx.getAttribLocation(programObj, varName);
       if (varLocation !== -1) {
@@ -240,12 +287,8 @@ var PointStream = (function() {
         ctx.enableVertexAttribArray(varLocation);
       }
     }
-    
-    /**
-      @private
-      
-      @param {} parser
     */
+    
     function getParserIndex(parser){
       var i;
       for(i = 0; i < parsers.length; i++){
@@ -500,33 +543,7 @@ var PointStream = (function() {
       pointClouds[i].status = STARTED;
     }
     
-    /**
-      @private
-      
-      The parser will call this when it is done parsing a chunk of data.
-
-      It cannot be assumed that the parsers will send in vertex, color,
-      and normal data at the same time. For example, the PSI parser will
-      send in all the vertex and color data first. Once it has finished
-      with those, it will begin sending normal data. The library must
-      accomodate for these cases.
-      
-      @param {Object} parser - The instance of the parser. There can be many
-      instances the library is using if the user has loaded multiple point
-      clouds.
-      
-      @param {Object} attributes - contains name/value pairs of arrays
-      
-      For example, the PSI parser will send in data which looks something
-      like this:
-      {
-        "ps_Vertex": [.....],
-        "ps_Color":  [.....],
-        "ps_Normal": [.....]
-      }
-    */
     function parseCallback(parser, attributes){
-
       var parserIndex = getParserIndex(parser);
       var pc = pointClouds[parserIndex];
 
@@ -970,7 +987,7 @@ var PointStream = (function() {
 
 		if (cor < 1) cor = 1;
 
-		// draw gnomon
+		// ***** draw gnomon ***********************************************************************
 		var axisX = new Float32Array([0,0,0, cor,0,0,
 									  0,0.001,0, cor,0.001,0,
 									  0,0.002,0, cor,0.002,0,
@@ -1028,6 +1045,7 @@ var PointStream = (function() {
 	  	ctx.drawArrays(ctx.LINES, 0, axisX.length/3);
 	    disableVertexAttribPointer(currProgram, 'ps_Vertex');
 	    disableVertexAttribPointer(currProgram, 'ps_Color');
+		// ***** end draw gnomon ***********************************************************************
 
         // We need at least positional data.
         if (pointCloud.attributes['ps_Vertex']) {
@@ -1042,7 +1060,13 @@ var PointStream = (function() {
               ctx.bindBuffer(ctx.ARRAY_BUFFER, pointCloud.attributes['ps_Vertex'][currVBO].VBO);
               ctx.vertexAttribPointer(attribVertex, 3, ctx.FLOAT, false, vertexSize, 0);  // vertices
               ctx.enableVertexAttribArray(attribVertex);
-              
+
+		  // ps_Intensity
+              var attribIntensity = ctx.getAttribLocation(currProgram, 'ps_Intensity');
+              ctx.bindBuffer(ctx.ARRAY_BUFFER, pointCloud.attributes['ps_Vertex'][currVBO].VBO);
+              ctx.vertexAttribPointer(attribIntensity, 1, ctx.FLOAT, false, vertexSize, 12);  // intensity
+              ctx.enableVertexAttribArray(attribIntensity);
+
 	      // ps_Color
               var attribColor = ctx.getAttribLocation(currProgram, 'ps_Color');
               ctx.bindBuffer(ctx.ARRAY_BUFFER, pointCloud.attributes['ps_Vertex'][currVBO].VBO);
