@@ -159,7 +159,10 @@ function keyDown(){
 
   // back slash \
   if (ps.key == 92) {
-     cam.setPosition([0, 0, 100]);
+	if (ps.RenderMode < 2)
+	  ps.RenderMode++;
+    else
+      ps.RenderMode = 0;
   }
 }
 
@@ -259,6 +262,8 @@ function start(){
                             0, 1, 0, 0, 
                             0, 0, 0, 1);
 
+  ps.RenderMode = 0;
+
   input = document.getElementById('fileinput');
   selectedFile = input.files[0];
   lion = ps.load(selectedFile);
@@ -285,6 +290,7 @@ function startServer(){
                            0, 0, 1, 0, 
                            0, 1, 0, 0, 
                            0, 0, 0, 1);
+
 
   lion = ps.load('testcloud.pointcloud');
 }

@@ -94,6 +94,8 @@ var PointStream = (function() {
     // this is for transforming Up axis
     var UpAxisMatrix = [];
 
+	var RenderMode = 0;	// default render mode is point color
+
     // this holds our shader program
     var currProgram;
 
@@ -129,6 +131,7 @@ var PointStream = (function() {
     "attribute vec4 ps_Color;" +
 	"attribute float ps_Intensity;" + 
     
+	"uniform int ps_RenderMode;" + 
     "uniform float ps_PointSize;" +
     "uniform vec3 ps_Attenuation;" +
     
@@ -181,9 +184,14 @@ var PointStream = (function() {
     "}" + 
 
     "void main(void) {" +
-	//"  frontColor = vec4(HSVtoRGB(ps_Intensity*360.0, 1.0, 1.0), 1.0);" + 
-    //"  frontColor = ps_Color;" +
-    "  frontColor = vec4(ps_Intensity, ps_Intensity, ps_Intensity, 1.0);" + 
+
+	"  if (ps_RenderMode==0) {" + 
+    "    frontColor = ps_Color;" +
+	"  } else if (ps_RenderMode==1) {" + 
+	"        frontColor = vec4(HSVtoRGB(ps_Intensity*360.0, 1.0, 1.0), 1.0);" + 
+	"  } else {" +
+    "        frontColor = vec4(ps_Intensity, ps_Intensity, ps_Intensity, 1.0);" + 
+	"  }" +
 
     "  vec4 fixedUpAxisPos4 = ps_SwitchUpAxisMatrix * vec4(ps_Vertex, 1.0);" + 
     "  vec4 ecPos4 = ps_ModelViewMatrix * fixedUpAxisPos4;" +
@@ -669,6 +677,7 @@ var PointStream = (function() {
       point size, attenuation or projection.
     */
     function setDefaultUniforms(){
+	  uniformi(currProgram, "ps_RenderMode", 0);
       uniformf(currProgram, "ps_PointSize", 1);
       uniformf(currProgram, "ps_Attenuation", [attn[0], attn[1], attn[2]]); 
       uniformMatrix(currProgram, "ps_ProjectionMatrix", false, projectionMatrix);
@@ -966,14 +975,13 @@ var PointStream = (function() {
 
     this.render = function(pointCloud){
     
-      // Don't bother doing any work if we don't have a context yet.
       if (ctx) {
-
 
         // We need to find a way to detect normals. If normals don't exist,
         // we don't need to figure out the normal transformation.
         //normalMatrix = M4x4.inverseOrthonormal(topMatrix);
         //uniformMatrix(currProgram, "ps_NormalMatrix", false, M4x4.transpose(normalMatrix));
+
 
         var topMatrix = this.peekMatrix();
         uniformMatrix(currProgram, "ps_ModelViewMatrix", false, topMatrix);
@@ -988,6 +996,7 @@ var PointStream = (function() {
 		if (cor < 1) cor = 1;
 
 		// ***** draw gnomon ***********************************************************************
+		uniformi(currProgram, "ps_RenderMode", 0); // always draw gnomer in true color mode
 		var axisX = new Float32Array([0,0,0, cor,0,0,
 									  0,0.001,0, cor,0.001,0,
 									  0,0.002,0, cor,0.002,0,
@@ -1049,6 +1058,8 @@ var PointStream = (function() {
 
         // We need at least positional data.
         if (pointCloud.attributes['ps_Vertex']) {
+
+		  uniformi(currProgram, "ps_RenderMode", this.RenderMode);
 
           var arrayOfBufferObjsV = pointCloud.attributes['ps_Vertex'];
 
