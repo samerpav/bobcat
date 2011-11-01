@@ -57,24 +57,11 @@ function keyDown(){
     ps.stop("/clouds/parking-lot.pts");
   }
 
-  //if (ps.key == 48) isInPickMode = true;
-
-  // test set color
-  //if (ps.key==48) {
-  //  var numChunks = lion.attributes["ps_Color"].length;
-
-  //  for (var i=0; i < numChunks; i++) {
-  //     var lenArray = lion.attributes["ps_Color"][i].array.length;
-  //     var cols = new Uint8Array(lenArray);
-
-  //     for (var j=0; j<lenArray; j+=3) {
-  //        cols[j] = 0;
-  //        cols[j+1] = 250;
-  //        cols[j+2] = 0;
-  //     }
-  //     lion.attributes["ps_Color"][i].array = cols;
-  //  }
-  //}
+  // s - screenshot
+  if (ps.key == 115) {
+	var s = ps.getPNG();
+	document.location.href = s.replace("image/png", "image/octet-stream");
+  }
 
   // 0 - zoom to fit
   if (ps.key == 48) {
@@ -249,7 +236,7 @@ function start(){
   ps.background([0.0, 0.0 ,0.0 ,1]);
   ps.pointSize(0.2);
 
-  ps.resize(window.innerWidth-100, window.innerHeight-100);
+  ps.resize(window.innerWidth-100, window.innerHeight-100, "{preserveDrawingBuffer: true}");
   ps.onRender = render;
   ps.onMouseScroll = zoom;
   ps.onMousePressed = mousePressed;

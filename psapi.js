@@ -1118,7 +1118,8 @@ var PointStream = (function() {
       
       for(var i = 0; i < contextNames.length; i++){
         try{
-          ctx = canvas.getContext(contextNames[i], ctxAttribs);
+          ctx = canvas.getContext(contextNames[i], {preserveDrawingBuffer: true});
+          //ctx = canvas.getContext(contextNames[i], ctxAttribs);
           if(ctx){
             break;
           }
@@ -1146,7 +1147,7 @@ var PointStream = (function() {
     */
     this.getPNG = function(){
       var arr = this.readPixels();
-      
+
       var cvs = document.createElement('canvas');
       cvs.width = width;
       cvs.height = height;
@@ -1165,7 +1166,7 @@ var PointStream = (function() {
         }
       }
       ctx2d.putImageData(image, 0, 0);
-      return cvs.toDataURL();
+      return cvs.toDataURL("image/png");
     };
     
     /**
