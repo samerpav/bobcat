@@ -51,8 +51,6 @@ function mouseReleased(){
 function keyDown(){
   // ps.key is ASCII, not javascript keycode!!!
 
-  NeedRender = true;
-
   if(ps.key == KEY_ESC){
     ps.stop("/clouds/parking-lot.pts");
   }
@@ -60,8 +58,12 @@ function keyDown(){
   // s - screenshot
   if (ps.key == 115) {
 	var s = ps.getPNG();
-	document.location.href = s.replace("image/png", "image/octet-stream");
+	window.open(s, 'snapshot');
+	console.log('snapshot..');
+	return;
   }
+
+  NeedRender = true;
 
   // 0 - zoom to fit
   if (ps.key == 48) {
@@ -255,7 +257,6 @@ function start(){
   selectedFile = input.files[0];
   lion = ps.load(selectedFile);
 
-  //lion = ps.load("/clouds/parking-lot-3M.pts"); // old way for loading pts file
 }
 
 // entry point for loading .pointcloud on server
