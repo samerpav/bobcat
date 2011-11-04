@@ -188,7 +188,7 @@ var PointStream = (function() {
 	"  if (ps_RenderMode==0) {" + 
     "    frontColor = ps_Color;" +
 	"  } else if (ps_RenderMode==1) {" + 
-	"        frontColor = vec4(HSVtoRGB(ps_Intensity*360.0, 1.0, 1.0), 1.0);" + 
+	"        frontColor = vec4(HSVtoRGB(ps_Intensity*359.0, 0.9, 1.0), 1.0);" + 
 	"  } else {" +
     "        frontColor = vec4(ps_Intensity, ps_Intensity, ps_Intensity, 1.0);" + 
 	"  }" +
@@ -325,7 +325,8 @@ var PointStream = (function() {
         var VBO = ctx.createBuffer();
         ctx.bindBuffer(ctx.ARRAY_BUFFER, VBO);
 
-        ctx.bufferData(ctx.ARRAY_BUFFER, arr, ctx.DYNAMIC_DRAW);
+        ctx.bufferData(ctx.ARRAY_BUFFER, arr, ctx.STATIC_DRAW);
+        //ctx.bufferData(ctx.ARRAY_BUFFER, arr, ctx.DYNAMIC_DRAW);
         
         // length is simply for convenience
         var obj = {
