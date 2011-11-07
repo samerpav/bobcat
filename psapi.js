@@ -49,7 +49,7 @@ var PointStream = (function() {
     registeredParsers["ptx"] = PTXParser;
     //registeredParsers["ply"] = PLYParser;
     
-    var VERSION  = "0.7";
+    var VERSION  = "0.1";
     
     // Following should be const, but some browsers along
     // with jslint have issues with this keyword. 
@@ -68,7 +68,6 @@ var PointStream = (function() {
     // default rendering states
     var bk = [1, 1, 1, 1];
     var attn = [0.01, 0.0, 0.003];
-    
       
     // browser detection to handle differences such as mouse scrolling
     var browser     = -1;
@@ -86,7 +85,9 @@ var PointStream = (function() {
     var canvas = null;
     var ctx = null;
 
-    // Transformation matrices
+    var octree = new Octree({ size: 4000000, depth: 8 });
+	
+	// Transformation matrices
     var matrixStack = [];
     var projectionMatrix;
     var normalMatrix;
@@ -588,6 +589,19 @@ var PointStream = (function() {
 		pc.boundingBoxMax[0] = Math.max(pc.boundingBoxMax[0], coords[j]);
 		pc.boundingBoxMax[1] = Math.max(pc.boundingBoxMax[1], coords[j+1]);
 		pc.boundingBoxMax[2] = Math.max(pc.boundingBoxMax[2], coords[j+2]);
+
+	    var x = Math.round(coords[j]);
+	    var y = Math.round(coords[j+1]);
+	    var z = Math.round(coords[j+2]);
+
+	    var node = new Octree.Node({
+						//object: x.toString() + ' ' + y.toString() + z.toString(),
+        				aabb: [ [ x, y, z], 
+        						[ x, y, z] ],
+        				//inserted: function( subtree ) { }
+	      			});
+	    octree.insert( node );
+
       }
 
 	  /*
@@ -760,6 +774,7 @@ var PointStream = (function() {
     /**********  Public methods **********/
     /*************************************/
     
+
     /**
       @name PointStream#onMousePressed
       @event
@@ -941,6 +956,10 @@ var PointStream = (function() {
       ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
     };
         
+	this.getOctree = function(){
+	  return octree;	
+	};
+
     this.upload = function (pointCloud, cloudName) {
 
       // gotta have data before uploading

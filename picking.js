@@ -101,6 +101,21 @@ function keyDown(){
 
   // 6 - for debugging
   if (ps.key == 54) { 
+
+	var tree = ps.getOctree().root;
+
+	if (tree.children.length==0) {
+		console.log(tree.nodes.length);
+		for (var i=0; i<tree.nodes.length; i++) {
+			console.log(i);	
+		}
+	}
+	else {
+		console.log('children.length : ' + tree.children.length);
+	}
+
+	return;
+
 	//console.log(lion.boundingBoxMin[0].toFixed(2) + ' ' + lion.boundingBoxMin[1].toFixed(2) + ' ' + lion.boundingBoxMin[2].toFixed(2));
 	//console.log(lion.boundingBoxMax[0].toFixed(2) + ' ' + lion.boundingBoxMax[1].toFixed(2) + ' ' + lion.boundingBoxMax[2].toFixed(2));
 	console.log(cam.getMatrix().slice(0,4));
