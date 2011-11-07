@@ -110,7 +110,25 @@ var PTSParser = (function() {
       var rawData;
       var lastNLIndex;
 
-	  var octree = [];
+	  //var lineCount = 0;
+	  //function CountLine() {
+	  //  FR.onerror = function () { debugger; }
+	  //  FR.onload = function() { 
+	  //  	var buf = FR.result;
+	  //  	//alert(buf.split(/\n/).length-1);			
+	  //  	var data = new Uint8Array(buf);
+	  //  	/*
+	  //  	var l = data.length;
+
+	  //  	for (var i = 0; i < l; i++)
+	  //  		if (data[i]==13) lineCount++;
+	  //  	*/
+	  //  	//alert(lineCount);
+
+	  //  } // onload
+	  //  FR.readAsBinaryString(file);
+	  //} // CountLine
+	  //CountLine();
 
       function loadNext() {
         var start, end,
