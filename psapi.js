@@ -85,8 +85,8 @@ var PointStream = (function() {
     var canvas = null;
     var ctx = null;
 
-    var octree = new Octree({ size: 4000000, depth: 8 });
-	
+    var octree;
+
 	// Transformation matrices
     var matrixStack = [];
     var projectionMatrix;
@@ -589,19 +589,6 @@ var PointStream = (function() {
 		pc.boundingBoxMax[0] = Math.max(pc.boundingBoxMax[0], coords[j]);
 		pc.boundingBoxMax[1] = Math.max(pc.boundingBoxMax[1], coords[j+1]);
 		pc.boundingBoxMax[2] = Math.max(pc.boundingBoxMax[2], coords[j+2]);
-
-	    var x = Math.round(coords[j]);
-	    var y = Math.round(coords[j+1]);
-	    var z = Math.round(coords[j+2]);
-
-	    var node = new Octree.Node({
-						//object: x.toString() + ' ' + y.toString() + z.toString(),
-        				aabb: [ [ x, y, z], 
-        						[ x, y, z] ],
-        				//inserted: function( subtree ) { }
-	      			});
-	    octree.insert( node );
-
       }
 
 	  /*
@@ -617,7 +604,6 @@ var PointStream = (function() {
 
     } // parseCallback
         
-    //The parser will call this when the file is done being downloaded.
     function loadedCallback(parser){
       var parserIndex = getParserIndex(parser);
       var pc = pointClouds[parserIndex];
@@ -630,8 +616,95 @@ var PointStream = (function() {
 
       progress.style.width = '100%';
       progress.textContent = '100%';
-    }
-    
+
+	  var octreeSize = Math.abs(pc.boundingBoxMax[0] - pc.boundingBoxMin[0]);
+	  console.log('octreeSize : ' + octreeSize);
+	  /*
+	  console.log('distance y : ' + Math.abs(pc.boundingBoxMax[1] - pc.boundingBoxMin[1]));
+	  console.log('distance z : ' + Math.abs(pc.boundingBoxMax[2] - pc.boundingBoxMin[2]));
+	  */
+
+	  octree = new Octree({ size: octreeSize, depth: 9 });
+	  var step = vertexSize / Float32Array.BYTES_PER_ELEMENT;
+	
+	  var arrayOfVBOs = pc.attributes['ps_Vertex'];
+	  console.log('arrayOfVBOs.length : ' + arrayOfVBOs.length);
+	  for (var i=0; i<arrayOfVBOs.length; i++) {
+
+      	var coords = new Float32Array(pc.attributes['ps_Vertex'][i].array);
+		console.log('coords.length : ' + coords.length/step);
+
+      	for (var j=0; j < coords.length; j+=step) {
+
+		   var x = coords[j].toFixed(1);
+		   var y = coords[j+1].toFixed(1);
+		   var z = coords[j+2].toFixed(1);
+
+		   /*
+		   var x = parseFloat(coords[j]).toFixed(2);
+		   var y = parseFloat(coords[j+1]).toFixed(2);
+		   var z = parseFloat(coords[j+2]).toFixed(2);
+		   */
+
+		   /*
+		   var x = Math.round(coords[j]*100);
+		   var y = Math.round(coords[j+1]*100);
+		   var z = Math.round(coords[j+2]*100);
+		   */
+
+		   //var sInfo = x + ' ' + y + ' ' + z;
+		   var node = new Octree.Node({
+						    aabb: [ [ x, y, z], [ x, y, z] ],
+						    //inserted: function( subtree ) { }
+						  });
+		   //debugger;
+		   octree.insert( node );
+		} // j
+
+	  } // i
+
+	    var count = 0;
+
+		function check(tree) {
+
+			var anchor = $V([ tree.aabb[1][0], tree.aabb[1][1], tree.aabb[1][2] ]);
+			var topPlane = Plane.create( anchor, $V( [0,0,1]) );
+
+			var pickRay = Line.create([1.2,2,0], $V([0,0,1]));
+
+			// intersect point
+			ip = topPlane.intersectionWith(pickRay);
+
+			if ((ip.e(1) >= tree.aabb[0][0]) && (ip.e(1) <= tree.aabb[1][0])) { // x
+			  if ((ip.e(2) >= tree.aabb[0][1]) && (ip.e(2) <= tree.aabb[1][1])) { // y
+			    if ((ip.e(3) >= tree.aabb[0][2]) && (ip.e(3) <= tree.aabb[1][2])) { // z
+
+				   if (tree.nodes.length > 0) {
+				   	 //console.log(tree.aabb[0][0].toFixed(3) + ' ' + tree.aabb[0][1].toFixed(3) + ' ' + tree.aabb[0][2].toFixed(3));
+				   	 //console.log(tree.aabb[1][0].toFixed(3) + ' ' + tree.aabb[1][1].toFixed(3) + ' ' + tree.aabb[1][2].toFixed(3));
+				   	 //console.log(ip.inspect());
+				   	 //console.log('');
+					 console.log(tree.position);
+				   	 count++;
+				   }
+
+				   for (var i=0; i<tree.children.length; i++) {
+				      if (tree.children[i]) {
+				      	//console.log('found children');
+				      	check(tree.children[i]);
+				      }
+				   } // for
+				} // z
+			  } // y
+			} // x
+
+		} // check(tree)
+
+		check(octree.root);
+		console.log('node count : ' + count);
+
+    } // function
+
     function renderLoop(){
       //frames++;
       //frameCount++;

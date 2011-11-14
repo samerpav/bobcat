@@ -330,9 +330,16 @@
           $insertNode( node, that );
         }
         else {
+
           var newSize = size/2,
               offset = size/4,
               x = p[ 0 ], y = p[ 1 ], z = p[ 2 ];
+
+		  /*   original
+          var newSize = size/2,
+              offset = size/4,
+              x = p[ 0 ], y = p[ 1 ], z = p[ 2 ];
+		  */
 
           var news = [
             [ tNW, enums.octree.T_NW, [ x - offset, y - offset, z - offset ] ],
