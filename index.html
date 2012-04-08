@@ -7,7 +7,6 @@
     <script src="sylvester.js"></script> 
     <script src="glUtils.js"></script> 
     <script src="picking.js"></script>
-    <script src="octree.js"></script>
   </head>
 
   <!-- <body oncontextmenu="return false;" onLoad="start();" bgcolor="#222222"> -->
@@ -15,17 +14,18 @@
 
   <!-- <span id="fileStatus"></span><br /> -->
 
-  <div width=500>
+
+  <div id=btn width=500>
 		  <input type='file' id='fileinput' value='' onchange='start();'>
 		  <button type="button" onclick='Upload();'>Upload</button>
 		  <button type="button" onclick='startServer();'>Load from Server</button>
   </div>
 
   <!-- <button type="button" onclick='test();'>test</button> -->
-  
-  <div id="progress_bar"><div class="percent">0%</div></div>
 
-  <canvas id="canvas" width="800" height="500"></canvas><br />
+  <div id="progress_bar"><div class="percent">0%</div></div>
+  <div id="gradient-bg"></div>
+  <canvas id="canvas" width="500" height="500"></canvas><br />
 
   <!--    <span>Invert scroll wheel:</span><input type="checkbox" id="invertScroll" /> -->
 

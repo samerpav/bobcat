@@ -1,3 +1,30 @@
+body {
+		margin:0;
+		padding:0;
+}
+
+#btn {
+	z-index:2;
+}
+
+#canvas{
+	display:block;
+	border: none;
+	position:absolute;
+	top:50px;
+	z-index:2;
+}
+
+#gradient-bg{
+	width:100%;
+	height:95%;
+	position:absolute;
+	top:50px;
+	z-index:1;
+	background: -moz-linear-gradient(center bottom, #13289e 0%,#5c95ff 100%);
+	background: -webkit-gradient(linear, left bottom, left top, color-stop(0, #294fd5),color-stop(1, #92cdff));
+}
+
   #progress_bar {
 	position: absolute; top:0px; left:600px;
     margin: 10px 0;

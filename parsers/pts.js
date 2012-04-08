@@ -138,7 +138,7 @@ var PTSParser = (function() {
         end = start + chunkSize >= file.size ? file.size : start + chunkSize;
 	
         FR.onloadstart = function(e){
-			//console.log('pts.js: parse started');
+			console.log('pts.js: parse started');
             parseStart(FR.parser);
         };
 
@@ -226,9 +226,14 @@ var PTSParser = (function() {
 				  colors[0+j*colorOffset] = parseInt(field[4]); // R
 				  colors[1+j*colorOffset] = parseInt(field[5]); // G
 				  colors[2+j*colorOffset] = parseInt(field[6]); // B
-				  //colors[3+j*colorOffset] = 255; // padding
+				  colors[3+j*colorOffset] = 255; // padding
 				}
 
+				/*
+				 *
+				 *    don't need this as I now do color calculation in GLSL
+				 *
+				 */
 				//var hsv = new Object();
 				//var rawIntensity = parseInt(field[3]);
 				////intens[0+j*intensityOffset] = rawIntensity;

@@ -101,7 +101,7 @@ class CreatePointCloudFile(Resource):
         return 1
 
 root = Resource()
-root.putChild('', File("C:\\Users\\sam\\.ssh\\bobcat"))
+root.putChild('', File("C:\\Users\\mer\\.ssh\\bobcat"))
 root.putChild('upload', UploadVBO())
 root.putChild('load', Load())
 root.putChild('finalize', CreatePointCloudFile())

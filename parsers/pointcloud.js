@@ -40,6 +40,7 @@ var PointCloudParser = (function() {
       xhr.onloadstart = function(e){ start(xhr.parser); };
             
       xhr.onload = function(e){
+	return;
 	buf = this.response;	// this has ArrayBuffer
 
         var attributes = {};
@@ -49,6 +50,19 @@ var PointCloudParser = (function() {
         end(xhr.parser);
       } // onload
       
+      xhr.onprogress = function (e) {
+	console.log('onprogress');
+	buf = this.response;    // this has ArrayBuffer
+
+	if (buf) {
+		console.log('buf == true');
+		var attributes = {};
+		attributes["ps_Vertex"] = buf;
+		parse(xhr.parser, attributes);
+	}
+
+      } // onprogress
+
       xhr.open('GET', '/load', true);
       xhr.responseType = 'arraybuffer';
       xhr.setRequestHeader("cloudName", path);
