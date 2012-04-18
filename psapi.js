@@ -1258,8 +1258,8 @@ var PointStream = (function() {
       if(arguments.length === 0){
         fovy = 60;
         aspect = width/height;
-        near = 0.1;
-        far = 100000; // far plane is 100,000 units !
+        near = 1.0;   // original 0.1
+        far = 100; // far plane is 100,000 units !
       }
       
       var ymax = near * Math.tan(fovy * Math.PI / 360);

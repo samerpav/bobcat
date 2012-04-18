@@ -7,6 +7,8 @@
     <script src="sylvester.js"></script> 
     <script src="glUtils.js"></script> 
     <script src="picking.js"></script>
+    <script src="closure/goog/base.js"></script>
+	<script> goog.require('goog.math.Matrix'); </script>
   </head>
 
   <!-- <body oncontextmenu="return false;" onLoad="start();" bgcolor="#222222"> -->
@@ -24,7 +26,7 @@
   <!-- <button type="button" onclick='test();'>test</button> -->
 
   <div id="progress_bar"><div class="percent">0%</div></div>
-  <div id="gradient-bg"></div>
+  <div id="agradient-bg"></div>
   <canvas id="canvas" width="500" height="500"></canvas><br />
 
   <!--    <span>Invert scroll wheel:</span><input type="checkbox" id="invertScroll" /> -->
