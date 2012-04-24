@@ -106,21 +106,6 @@ function keyDown(){
 
   // 6 - for debugging
   if (ps.key == 54) { 
-
-	var tree = ps.getOctree().root;
-
-	if (tree.children.length==0) {
-		console.log(tree.nodes.length);
-		for (var i=0; i<tree.nodes.length; i++) {
-			console.log(i);	
-		}
-	}
-	else {
-		console.log('children.length : ' + tree.children.length);
-	}
-
-	return;
-
 	//console.log(lion.boundingBoxMin[0].toFixed(2) + ' ' + lion.boundingBoxMin[1].toFixed(2) + ' ' + lion.boundingBoxMin[2].toFixed(2));
 	//console.log(lion.boundingBoxMax[0].toFixed(2) + ' ' + lion.boundingBoxMax[1].toFixed(2) + ' ' + lion.boundingBoxMax[2].toFixed(2));
 	console.log(cam.getMatrix().slice(0,4));
@@ -219,14 +204,11 @@ function gluUnProject(winX, winY, winZ,
     resultMtx.getValueAt(2, 0),
     resultMtx.getValueAt(3, 0) ];
 
-  if (resultArr[3] == 0.0) {
+  if (resultArr[3] == 0.0)
     return false;
-  }
 
   // Invert to normalize x, y, and z values.
   resultArr[3] = 1.0 / resultArr[3];
-
-  console.log(resultArr[3]);
 
   objPos[0] = resultArr[0] * resultArr[3];
   objPos[1] = resultArr[1] * resultArr[3];
@@ -239,12 +221,8 @@ function gluUnProject(winX, winY, winZ,
 function render() {
 
   if (isInPickMode===true && isDragging===true) {
-    var vx, vy;
-	vx = ps.mouseX;
-	vy = ps.mouseY - 34; // offsetTop
-
-    var winX = vx;
-	var winY = vy;
+    var winX = ps.mouseX;
+	var winY = ps.mouseY - 50; // offsetTop
 
     var viewPort = [0, 0, ps.width, ps.height];
     var objPos = [];  
@@ -255,128 +233,29 @@ function render() {
             [ last_matrix[1], last_matrix[5], last_matrix[9], last_matrix[13] ],
             [ last_matrix[2], last_matrix[6], last_matrix[10], last_matrix[14] ],
             [ last_matrix[3], last_matrix[7], last_matrix[11], last_matrix[15] ]
-
-            //[ last_matrix[0], last_matrix[1], last_matrix[2], last_matrix[3] ],
-            //[ last_matrix[4], last_matrix[5], last_matrix[6], last_matrix[7] ],
-            //[ last_matrix[8], last_matrix[9], last_matrix[10], last_matrix[11] ],
-            //[ last_matrix[12], last_matrix[13], last_matrix[14], last_matrix[15] ]
                                               ]);
-
+	
     // The perspective matrix is the result of gluPerspective.
 	var pMatrix = ps.pMatrix();
     var perspectiveMatrix = new goog.math.Matrix([
-            //[ pMatrix[0], pMatrix[4], pMatrix[8], pMatrix[12] ],
-            //[ pMatrix[1], pMatrix[5], pMatrix[9], pMatrix[13] ],
-            //[ pMatrix[2], pMatrix[6], pMatrix[10], pMatrix[14] ],
-            //[ pMatrix[3], pMatrix[7], pMatrix[11], pMatrix[15] ]
-
-            [ pMatrix[0], pMatrix[1], pMatrix[2], pMatrix[3] ],
-            [ pMatrix[4], pMatrix[5], pMatrix[6], pMatrix[7] ],
-            [ pMatrix[8], pMatrix[9], pMatrix[10], pMatrix[11] ],
-            [ pMatrix[12], pMatrix[13], pMatrix[14], pMatrix[15] ]
+            [ pMatrix[0], pMatrix[4], pMatrix[8], pMatrix[12] ],
+            [ pMatrix[1], pMatrix[5], pMatrix[9], pMatrix[13] ],
+            [ pMatrix[2], pMatrix[6], pMatrix[10], pMatrix[14] ],
+            [ pMatrix[3], pMatrix[7], pMatrix[11], pMatrix[15] ]
 					]);
 
     // Ray start
     var result1 = gluUnProject( winX, winY, 0.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos);
-    console.log('Seg start: ' + objPos + ' (result:' + result1 + ')');
+    //console.log('Seg start: ' + objPos + ' (result:' + result1 + ')');
+    var RayStart = Vector.create( [objPos[0], objPos[1], objPos[2]] );
 
     // Ray end
-    //var result2 = gluUnProject( winX, winY, 1.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos); 
-	//console.log('Seg end: ' + objPos + ' (result:' + result2 + ')');
-	//console.log();
+    var result2 = gluUnProject( winX, winY, 1.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos); 
+	//console.log('Seg end: ' + objPos + ' (result:' + result2 + ')','\n');
+    var RayEnd = Vector.create( [objPos[0], objPos[1], objPos[2]] );
 
-    /*
-	var vx, vy, vz, i, j;
-
-	vx = ps.mouseX;
-	vy = ps.mouseY - 34; // offsetTop
-	vz = 0.0;
-
-	// NDC coordinates
-	var nx = 2.0*vx/(ps.width) - 1.0;
-	var ny = 1.0 - 2.0*vy/(ps.height);
-	var nz = 2*vz - 1.0;
-	var nw = 1.0;
-	
-	var c = Vector.create([nx, ny, nz, nw]);      // Clip coordinates same as NDC coordinates
-
-	var pMatrix = ps.pMatrix();
-	var tmp = M4x4.inverse(pMatrix);
-	var pMatrixInv = Matrix.create([
-									[tmp[0],  tmp[1],  tmp[2],  tmp[3] ],
-									[tmp[4],  tmp[5],  tmp[6],  tmp[7] ],
-									[tmp[8],  tmp[9],  tmp[10], tmp[11] ],
-									[tmp[12], tmp[13], tmp[14], tmp[15] ]
-                                  ]);
-	//console.dir( pMatrixInv.inspect() );// inverse calculation is OK
-	
-	//var v = pMatrixInv.x(c); // Clipping Space to View Space
-	
-	// Rescale
-	//v.elements[0] = v.elements[0] / v.elements[3];
-	//v.elements[1] = v.elements[1] / v.elements[3];
-	//v.elements[2] = v.elements[2] / v.elements[3];
-	//v.elements[3] = 1.0
-	//console.dir( v.inspect() );
-	
-	var v = Vector.create( [nx / pMatrix[0], -ny / pMatrix[5], 1.0, 1.0] );
-	//console.log (v.inspect() );
-
-	var m = M4x4.inverse(last_matrix);
-	var raydir = Vector.create([
-					            v.e(1)*m[0] + v.e(2)*m[1] + v.e(3)*m[2],
-					            v.e(1)*m[4] + v.e(2)*m[5] + v.e(3)*m[6],
-					            v.e(1)*m[8] + v.e(2)*m[9] + v.e(3)*m[10] 
-							   ]);
-    var rayorig = Vector.create([ m[12], m[13], m[14] ]);
-
-    console.dir( raydir.inspect() );
-	console.dir( rayorig.inspect() );
-
-	/*
-    var tmp = Matrix.create([
-                             [ last_matrix[0], last_matrix[1], last_matrix[2], last_matrix[3] ],
-                             [ last_matrix[4], last_matrix[5], last_matrix[6], last_matrix[7] ],
-                             [ last_matrix[8], last_matrix[9], last_matrix[10], last_matrix[11] ],
-                             [ last_matrix[12], last_matrix[13], last_matrix[14], last_matrix[15] ],
-                            ]);
-	var mvPickMatrixInv = Matrix.I(4);
-
-	// rotation 
-	var R = tmp.minor(1,1,3,3);
-	var Rt = R.transpose();
-	for (i=0; i < 3; i++) {
-		for (j=0; j < 3; j++) {
-			mvPickMatrixInv.elements[i][j] = Rt.elements[i][j];
-		}	
-	}
-
-	// translation
-    var t = Vector.create([ last_matrix[12], last_matrix[13], last_matrix[14] ]);
-	var tp = Rt.x(t);
-    mvPickMatrixInv.elements[3][0] = -1.0 * tp.elements[0];
-    mvPickMatrixInv.elements[3][1] = -1.0 * tp.elements[1];
-    mvPickMatrixInv.elements[3][2] = -1.0 * tp.elements[2];
-		
-	var ray_start_point = Vector.create([ 0.0, 0.0, 0.0, 1.0 ]);      // camera position in Viewspac
-
-    v.elements[3] = 0;                 // Make v a ray in view coordinates
-	var w = mvPickMatrixInv.x(v);      // w is now a ray in world coordinates
-
-    var a = mvPickMatrixInv.x(ray_start_point);
-   
-	var anchor = Vector.create([ a.e(1), a.e(2), a.e(3) ]);
-	var direction = Vector.create([ w.e(1), w.e(2), w.e(3) ]);
-
-	var l = Line.create(anchor, direction.toUnitVector())
-
-	console.dir(l.anchor.inspect());
-	console.dir(l.direction.inspect());
-
-	*/
-
-    var pt = Vector.create( [objPos[0], objPos[1], objPos[2]] );
-	ps.PickRay = pt;
+	ps.PickRayStart = RayStart.dup();
+	ps.PickRayEnd = RayEnd.dup();
 	NeedRender = true;
 
 	isInPickMode = false;
@@ -388,8 +267,8 @@ function render() {
 	var deltaY = ps.mouseY - rotationStartCoords[1];
 	rotationStartCoords = [ps.mouseX, ps.mouseY];
 
-	cam.yaw(-deltaX * 0.015); // 0.015 indicates how fast yaw is done
-	cam.pitch(deltaY * 0.015);
+	cam.yaw(-deltaX * 0.003); 
+	cam.pitch(deltaY * 0.003);
 
 	NeedRender = true;
 
@@ -411,8 +290,8 @@ function render() {
 
 	  	VPanning = V3.cross(cam.direction, HPanning);
 
-	  var newPos = V3.add(lion.getCenter(), V3.scale(HPanning, -offsetX/20));
-	  newPos = V3.add(newPos, V3.scale(VPanning, -offsetY/20)); 
+	  var newPos = V3.add(lion.getCenter(), V3.scale(HPanning, -offsetX/30));
+	  newPos = V3.add(newPos, V3.scale(VPanning, -offsetY/30)); 
 	  
 	  lion.setCenter([newPos[0], newPos[1], newPos[2]]);
 
@@ -480,7 +359,8 @@ function start(){
                             0, 0, 1, 0, 
                             0, 1, 0, 0, 
                             0, 0, 0, 1);
-  ps.PickRay = Vector.create( [5, 5, 5] );
+  ps.PickRayStart = Vector.create( [0, 0, 0] );
+  ps.PickRayEnd = Vector.create( [1, 1, 1] );
   ps.RenderMode = 0;
 
   input = document.getElementById('fileinput');
@@ -512,38 +392,3 @@ function startServer(){
 
   lion = ps.load('testcloud.pointcloud');
 }
-
-  var pMatrixInv;
-  function perspectiveInv(fovy, aspect, znear, zfar) {
-    pMatrixInv = makePerspectiveInv(fovy, aspect, znear, zfar);
-  } 
-
-  function makePerspectiveInv(fovy, aspect, znear, zfar)
-  {
-    var ymax = znear * Math.tan(fovy * Math.PI / 360.0);
-    var ymin = -ymax;
-    var xmin = ymin * aspect;
-    var xmax = ymax * aspect;
-
-    return makeFrustumInv(xmin, xmax, ymin, ymax, znear, zfar);
-  }
-
-
-  function makeFrustumInv(left, right,
-                     bottom, top,
-                     znear, zfar)
-  {
-    var X = 2*znear/(right-left);
-    var Y = 2*znear/(top-bottom);
-    var A = (right+left)/(right-left);
-    var B = (top+bottom)/(top-bottom);
-    var C = -(zfar+znear)/(zfar-znear);
-    var D = -2*zfar*znear/(zfar-znear);
-
-    return $M([[1/X, 0, 0, A/X],
-               [0, 1/Y, 0, B/Y],
-               [0, 0, 0, -1],
-               [0, 0, 1/D, C/D]]);
-  }
-
-
