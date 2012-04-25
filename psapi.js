@@ -25,6 +25,7 @@ var PointStream = (function() {
     var userMouseReleased = __empty_func;
     var userMousePressed = __empty_func;
     var userMouseScroll = __empty_func;
+	var userMouseDblClick = __empty_func;
     var mouseX = 0;
     var mouseY = 0;
     
@@ -93,7 +94,8 @@ var PointStream = (function() {
     // this is for transforming Up axis
     var UpAxisMatrix = [];
 
-	var PickRay;
+	var PickRayStart;
+	var PickRayEnd;
 
 	var RenderMode = 0;	// default render mode is point color
 
@@ -708,6 +710,10 @@ var PointStream = (function() {
       var IsRightClick = (evt.which==3) ? true : false;	
       userMousePressed(IsRightClick);
     }
+
+	function mouseDblClick(evt){
+      userMouseDblClick();
+	}
     
     /**
       @private
@@ -772,6 +778,10 @@ var PointStream = (function() {
     this.__defineSetter__("onMousePressed", function(func){
       userMousePressed = func;
     });
+
+	this.__defineSetter__("onMouseDblClick", function(func){
+	  userMouseDblClick = func;
+	});
     
     /**
       @name PointStream#onMouseReleased
@@ -1019,7 +1029,8 @@ var PointStream = (function() {
 									  0.004,0,0, 0.004,0,cor,
 
 									  // pick ray
-									  0,0,0,     this.PickRay.e(1), this.PickRay.e(2), this.PickRay.e(3),
+									  this.PickRayStart.e(1), this.PickRayStart.e(2), this.PickRayStart.e(3),
+									  this.PickRayEnd.e(1), this.PickRayEnd.e(2), this.PickRayEnd.e(3)
 									  ]);
 		var bufLines = ctx.createBuffer();
         ctx.bindBuffer(ctx.ARRAY_BUFFER, bufLines);
@@ -1043,8 +1054,8 @@ var PointStream = (function() {
 									 0,0,255, 0,0,255,
 									 0,0,255, 0,0,255,
 
-									 // pick ray color
-									 255,0,0, 255,0,0 
+									 // pick ray color - yellow
+									 255,255,0, 255,255,0 
 									 ]);
 		var bufColors = ctx.createBuffer();
         ctx.bindBuffer(ctx.ARRAY_BUFFER, bufColors);
@@ -1258,8 +1269,8 @@ var PointStream = (function() {
       if(arguments.length === 0){
         fovy = 60;
         aspect = width/height;
-        near = 1.0;   // original 0.1
-        far = 100; // far plane is 100,000 units !
+        near = 1.0;   
+        far = 1000000; 
       }
       
       var ymax = near * Math.tan(fovy * Math.PI / 360);
@@ -1631,6 +1642,7 @@ var PointStream = (function() {
 
       attach(cvs, "mouseup", mouseReleased);
       attach(cvs, "mousedown", mousePressed);
+	  attach(cvs, "dblclick", mouseDblClick);
       attach(cvs, "DOMMouseScroll", mouseScroll);
       attach(cvs, "mousewheel", mouseScroll);
       attach(cvs, "mousemove", mouseMoved);

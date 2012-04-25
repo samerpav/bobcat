@@ -48,6 +48,49 @@ function mouseReleased(){
   isDragging = false;
 }
 
+function mouseDblClick() {
+	console.log( 'picking' );
+
+    var winX = ps.mouseX;
+	var winY = ps.mouseY - 50; // offsetTop
+
+    var viewPort = [0, 0, ps.width, ps.height];
+    var objPos = [];  
+
+    // The camera's model-view matrix is the result of gluLookAt.
+    var modelViewMatrix = new goog.math.Matrix([
+            [ last_matrix[0], last_matrix[4], last_matrix[8], last_matrix[12] ],
+            [ last_matrix[1], last_matrix[5], last_matrix[9], last_matrix[13] ],
+            [ last_matrix[2], last_matrix[6], last_matrix[10], last_matrix[14] ],
+            [ last_matrix[3], last_matrix[7], last_matrix[11], last_matrix[15] ]
+                                              ]);
+	
+    // The perspective matrix is the result of gluPerspective.
+	var pMatrix = ps.pMatrix();
+    var perspectiveMatrix = new goog.math.Matrix([
+            [ pMatrix[0], pMatrix[4], pMatrix[8], pMatrix[12] ],
+            [ pMatrix[1], pMatrix[5], pMatrix[9], pMatrix[13] ],
+            [ pMatrix[2], pMatrix[6], pMatrix[10], pMatrix[14] ],
+            [ pMatrix[3], pMatrix[7], pMatrix[11], pMatrix[15] ]
+					]);
+
+    // Ray start
+    var result1 = gluUnProject( winX, winY, 0.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos);
+    var RayStart = Vector.create( [-objPos[0], objPos[2], objPos[1]] );
+    //console.log('Ray start: ' + objPos + ' (result:' + result1 + ')');
+
+    // Ray end
+    var result2 = gluUnProject( winX, winY, 1.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos); 
+    var RayEnd = Vector.create( [-objPos[0], objPos[2], objPos[1]] );
+	//console.log('Ray end: ' + objPos + ' (result:' + result2 + ')','\n');
+	//console.dir( RayEnd.toUnitVector().inspect() );
+
+	ps.PickRayStart = RayStart.dup();
+	ps.PickRayEnd = RayEnd.dup();
+
+	isInPickMode = !isInPickMode;
+}
+
 function keyDown(){
   // ps.key is ASCII, not javascript keycode!!!
 
@@ -217,49 +260,11 @@ function gluUnProject(winX, winY, winZ,
   return true;
 }
 
-
 function render() {
 
-  if (isInPickMode===true && isDragging===true) {
-    var winX = ps.mouseX;
-	var winY = ps.mouseY - 50; // offsetTop
-
-    var viewPort = [0, 0, ps.width, ps.height];
-    var objPos = [];  
-
-    // The camera's model-view matrix is the result of gluLookAt.
-    var modelViewMatrix = new goog.math.Matrix([
-            [ last_matrix[0], last_matrix[4], last_matrix[8], last_matrix[12] ],
-            [ last_matrix[1], last_matrix[5], last_matrix[9], last_matrix[13] ],
-            [ last_matrix[2], last_matrix[6], last_matrix[10], last_matrix[14] ],
-            [ last_matrix[3], last_matrix[7], last_matrix[11], last_matrix[15] ]
-                                              ]);
-	
-    // The perspective matrix is the result of gluPerspective.
-	var pMatrix = ps.pMatrix();
-    var perspectiveMatrix = new goog.math.Matrix([
-            [ pMatrix[0], pMatrix[4], pMatrix[8], pMatrix[12] ],
-            [ pMatrix[1], pMatrix[5], pMatrix[9], pMatrix[13] ],
-            [ pMatrix[2], pMatrix[6], pMatrix[10], pMatrix[14] ],
-            [ pMatrix[3], pMatrix[7], pMatrix[11], pMatrix[15] ]
-					]);
-
-    // Ray start
-    var result1 = gluUnProject( winX, winY, 0.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos);
-    //console.log('Seg start: ' + objPos + ' (result:' + result1 + ')');
-    var RayStart = Vector.create( [objPos[0], objPos[1], objPos[2]] );
-
-    // Ray end
-    var result2 = gluUnProject( winX, winY, 1.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos); 
-	//console.log('Seg end: ' + objPos + ' (result:' + result2 + ')','\n');
-    var RayEnd = Vector.create( [objPos[0], objPos[1], objPos[2]] );
-
-	ps.PickRayStart = RayStart.dup();
-	ps.PickRayEnd = RayEnd.dup();
+  if (isInPickMode===true) {
 	NeedRender = true;
-
 	isInPickMode = false;
-	isDragging = false;
   }
 
   if (isDragging === true){		
@@ -350,6 +355,7 @@ function start(){
   ps.onMouseScroll = zoom;
   ps.onMousePressed = mousePressed;
   ps.onMouseReleased = mouseReleased;
+  ps.onMouseDblClick = mouseDblClick;
   ps.onKeyDown = keyDown;
 
   var last_matrix;
@@ -360,7 +366,7 @@ function start(){
                             0, 1, 0, 0, 
                             0, 0, 0, 1);
   ps.PickRayStart = Vector.create( [0, 0, 0] );
-  ps.PickRayEnd = Vector.create( [1, 1, 1] );
+  ps.PickRayEnd = Vector.create( [0, 0, 0] );
   ps.RenderMode = 0;
 
   input = document.getElementById('fileinput');
