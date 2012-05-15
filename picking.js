@@ -76,20 +76,25 @@ function mouseDblClick() {
 
     // Ray start
     var result1 = gluUnProject( winX, winY, 0.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos);
-    var RayStart = Vector.create( [-objPos[0], objPos[2], objPos[1]] );
-    //console.log('Ray start: ' + objPos + ' (result:' + result1 + ')');
+    var RayStart = Vector.create( [-objPos[0], objPos[2], objPos[1]] ); // inverse because our default is Z-up
+    console.log('Ray start: ' + objPos + ' (result:' + result1 + ')');
 
     // Ray end
     var result2 = gluUnProject( winX, winY, 1.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos); 
-    var RayEnd = Vector.create( [-objPos[0], objPos[2], objPos[1]] );
+    var RayEnd = Vector.create( [-objPos[0], objPos[2], objPos[1]] );// inverse because our default is Z-up
 	//console.log('Ray end: ' + objPos + ' (result:' + result2 + ')','\n');
-	//console.dir( RayEnd.toUnitVector().inspect() );
+	console.dir( RayEnd.toUnitVector().inspect() );
+
+	var RayDir = RayEnd.toUnitVector();
 
 	ps.PickRayStart = RayStart.dup();
 	ps.PickRayEnd = RayEnd.dup();
 
+    ps.findPickPoint(RayStart, RayDir);
+
 	isInPickMode = !isInPickMode;
 }
+
 
 function keyDown(){
   // ps.key is ASCII, not javascript keycode!!!

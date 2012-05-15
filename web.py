@@ -9,6 +9,8 @@ from twisted.web.static import File
 import cPickle
 import time
 
+import socket
+
 def wait(seconds, result=None):
     d = defer.Deferred()
     reactor.callLater(seconds, d.callback, result)
@@ -100,10 +102,40 @@ class CreatePointCloudFile(Resource):
 
         return 1
 
+class QueryPickPoint(Resource):
+    def render_GET(self, request):
+       isLeaf = True
+       RayOriginX = request.received_headers['rayoriginx']
+       RayOriginY = request.received_headers['rayoriginy']
+       RayOriginZ = request.received_headers['rayoriginz']
+       RayDirX = request.received_headers['raydirx']
+       RayDirY = request.received_headers['raydiry']
+       RayDirZ = request.received_headers['raydirz']
+
+       HOST = '127.0.0.1'
+       PORT = 9000 
+       s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+       s.connect((HOST, PORT))
+       #s.sendall('1,0.849,-2.379,0.445,0.019,0.569,-0.822')
+       
+       strQuery = '1,%s,%s,%s,%s,%s,%s' % (RayOriginX,RayOriginY,RayOriginZ,RayDirX,RayDirY,RayDirZ)
+       pprint(strQuery)
+       s.sendall(strQuery)
+       
+       data = s.recv(1024)
+       s.close()
+       #request.write(data)
+
+       pprint('Received' + repr(data))
+
+       #request.finish()
+       
+
 root = Resource()
 root.putChild('', File("C:\\Users\\mer\\.ssh\\bobcat"))
 root.putChild('upload', UploadVBO())
 root.putChild('load', Load())
+root.putChild('findpickpoint', QueryPickPoint())
 root.putChild('finalize', CreatePointCloudFile())
 
 factory = Site(root)

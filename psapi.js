@@ -953,6 +953,24 @@ var PointStream = (function() {
       ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
     };
         
+	this.findPickPoint = function (rayOrigin, rayDir) {
+	   var xhr = new XMLHttpRequest();
+	   xhr.open('GET', '/findpickpoint', false);
+	   xhr.onload = function(e) {
+	  		console.log('xhr.onload ... ' + this.response); 
+	   };
+
+	   //xhr.responseType = 'text';
+	   xhr.setRequestHeader("rayoriginx", rayOrigin.e(1).toFixed(3) );
+	   xhr.setRequestHeader("rayoriginy", rayOrigin.e(2).toFixed(3) );
+	   xhr.setRequestHeader("rayoriginz", rayOrigin.e(3).toFixed(3) );
+	   xhr.setRequestHeader("raydirx", rayDir.e(1).toFixed(3) );
+	   xhr.setRequestHeader("raydiry", rayDir.e(2).toFixed(3) );
+	   xhr.setRequestHeader("raydirz", rayDir.e(3).toFixed(3) );
+
+	   xhr.send();
+	}
+
     this.upload = function (pointCloud, cloudName) {
 
       // gotta have data before uploading
