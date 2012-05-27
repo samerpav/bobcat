@@ -124,11 +124,13 @@ class QueryPickPoint(Resource):
        
        data = s.recv(1024)
        s.close()
-       #request.write(data)
 
-       pprint('Received' + repr(data))
+       responseData = repr(data)
+       pprint(responseData)
+       request.write(responseData)
 
-       #request.finish()
+       request.finish()
+       return server.NOT_DONE_YET
        
 
 root = Resource()

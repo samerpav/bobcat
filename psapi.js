@@ -328,8 +328,8 @@ var PointStream = (function() {
         var VBO = ctx.createBuffer();
         ctx.bindBuffer(ctx.ARRAY_BUFFER, VBO);
 
-        ctx.bufferData(ctx.ARRAY_BUFFER, arr, ctx.STATIC_DRAW);
-        //ctx.bufferData(ctx.ARRAY_BUFFER, arr, ctx.DYNAMIC_DRAW);
+        //ctx.bufferData(ctx.ARRAY_BUFFER, arr, ctx.STATIC_DRAW);
+        ctx.bufferData(ctx.ARRAY_BUFFER, arr, ctx.DYNAMIC_DRAW);
         
         // length is simply for convenience
         var obj = {
@@ -341,6 +341,7 @@ var PointStream = (function() {
         return obj;
       }
     }
+
     
     /**
       @private
@@ -955,12 +956,12 @@ var PointStream = (function() {
         
 	this.findPickPoint = function (rayOrigin, rayDir) {
 	   var xhr = new XMLHttpRequest();
-	   xhr.open('GET', '/findpickpoint', false);
+	   xhr.open('GET', '/findpickpoint', true);
 	   xhr.onload = function(e) {
-	  		console.log('xhr.onload ... ' + this.response); 
+	  		console.log('xhr.onload ... ' + this.responseText); 
 	   };
 
-	   //xhr.responseType = 'text';
+	   xhr.responseType = "text";
 	   xhr.setRequestHeader("rayoriginx", rayOrigin.e(1).toFixed(3) );
 	   xhr.setRequestHeader("rayoriginy", rayOrigin.e(2).toFixed(3) );
 	   xhr.setRequestHeader("rayoriginz", rayOrigin.e(3).toFixed(3) );
@@ -1003,6 +1004,13 @@ var PointStream = (function() {
       } // check attribute
 
     } // this.upload
+
+	this.reBindBufferObject = function(pointCloud) {
+		if (ctx) {
+          ctx.bindBuffer(ctx.ARRAY_BUFFER, pointCloud.attributes['ps_Vertex'][0].VBO);
+          ctx.bufferSubData(ctx.ARRAY_BUFFER, 0, pointCloud.attributes['ps_Vertex'][0].array);
+		}
+	}
 
     this.render = function(pointCloud){
     
@@ -1107,6 +1115,7 @@ var PointStream = (function() {
 	      // ps_Vertex
               var attribVertex = ctx.getAttribLocation(currProgram, 'ps_Vertex');
               ctx.bindBuffer(ctx.ARRAY_BUFFER, pointCloud.attributes['ps_Vertex'][currVBO].VBO);
+			  //ctx.bufferSubData(ctx.ARRAY_BUFFER, 0, pointCloud.attributes['ps_Vertex'][currVBO].array);
               ctx.vertexAttribPointer(attribVertex, 3, ctx.FLOAT, false, vertexSize, 0);  // vertices
               ctx.enableVertexAttribArray(attribVertex);
 
@@ -1708,7 +1717,7 @@ var PointStream = (function() {
 	    extension = 'pointcloud';
 	}
 	else if (typeof path==='object') {
-	  if (path.fileName.indexOf('.pts') > 0)
+	  if (path.name.indexOf('.pts') > 0)
 	    extension = 'pts';
 	  else if (path.fileName.indexOf('.ptx') > 0)
 		extension = 'ptx';
@@ -1743,7 +1752,6 @@ var PointStream = (function() {
 		boundingBoxMax: [-1000000, -10000, -1000000],
 		boundingBoxMin: [1000000, 10000, 1000000],
 		radius: 0,
-
 
 		getCenter: function(){ return this.center; },
 		setCenter: function(c){ this.center = c; },
