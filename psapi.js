@@ -1322,8 +1322,8 @@ var PointStream = (function() {
       if(arguments.length === 0){
         fovy = 60;
         aspect = width/height;
-        near = 1.0;   
-        far = 1000000; 
+        near = 0.1;   
+        far = 100000; 
       }
       
       var ymax = near * Math.tan(fovy * Math.PI / 360);

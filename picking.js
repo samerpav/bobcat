@@ -2,7 +2,7 @@ var ps;
 var lion, pickedpoint;
 
 // Create an orbit camera halfway between the closest and farthest point
-var cam = new OrbitCam({closest:0.1, farthest:1000000, distance: 5});
+var cam = new OrbitCam({closest:0.001, farthest:1000000.0, distance: 5});
 var rotationStartCoords = [0, 0];
 var isDragging = false;
 
@@ -22,11 +22,11 @@ const KEY_ESC = 27;
 
 function zoom(amt){
   if(amt < 0){
-    cam.goCloser(-amt*2);
+    cam.goCloser(-amt*0.5);
 	NeedRender = true;
   }
   else{
-    cam.goFarther(amt*2);
+    cam.goFarther(amt*0.5);
 	NeedRender = true;
   }
 }
@@ -75,23 +75,25 @@ function mouseDblClick() {
     // Ray start
     var result1 = gluUnProject( winX, winY, 0.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos);
     var RayStart = Vector.create( [-objPos[0], objPos[2], objPos[1]] ); // inverse because our default is Z-up
-    //console.log('Ray start: ' + objPos + ' (result:' + result1 + ')');
+	console.log('Ray start: ' + objPos + ' (result:' + result1 + ')');
 
     // Ray end
     var result2 = gluUnProject( winX, winY, 1.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos); 
     var RayEnd = Vector.create( [-objPos[0], objPos[2], objPos[1]] );// inverse because our default is Z-up
-	//console.log('Ray end: ' + objPos + ' (result:' + result2 + ')','\n');
+	console.log('Ray end: ' + objPos + ' (result:' + result2 + ')','\n');
 	//console.dir( RayEnd.toUnitVector().inspect() );
 
 	var RayDir = RayEnd.toUnitVector();
 
-	ps.PickRayStart = RayStart.dup();
-	ps.PickRayEnd = RayEnd.dup();
-
-	var pp = ps.findPickPoint(RayStart, RayDir);
+	/*
+	 *   un-comment these 2 lines to show pick ray
+	 */
+	//ps.PickRayStart = RayStart.dup();
+	//ps.PickRayEnd = RayEnd.dup();
 
 	isInPickMode = !isInPickMode;
 
+	var pp = ps.findPickPoint(RayStart, RayDir);
 	console.log('pp = ', pp);
 
 	if (pp == null) return;
@@ -377,7 +379,7 @@ function render() {
   ps.render(lion);
 
   if (pickedpoint) {
-    ps.pointSize(1);
+    ps.pointSize(2);
     ps.render(pickedpoint);
   }
 
