@@ -956,12 +956,27 @@ var PointStream = (function() {
         
 	this.findPickPoint = function (rayOrigin, rayDir) {
 	   var xhr = new XMLHttpRequest();
-	   xhr.open('GET', '/findpickpoint', true);
+	   xhr.open('GET', '/findpickpoint', false); // blocking call
+	   
+	   /*
 	   xhr.onload = function(e) {
-	  		console.log('xhr.onload ... ' + this.responseText); 
-	   };
+			var strPickedPoint = this.responseText;
+	  		console.log('picked point : ' + strPickedPoint); 
 
-	   xhr.responseType = "text";
+			// didn't find any good picked point
+			if (strPickedPoint === '0,0,0') {
+				debugger;
+				return null;
+			}
+			else  {
+				var pp = strPickedPoint.split(','); 
+				console.log('pp = ', pp);
+				return pp;
+			}
+	   };
+	   */
+
+	   //xhr.responseType = "text"; // cannot set responseType for blocking calls
 	   xhr.setRequestHeader("rayoriginx", rayOrigin.e(1).toFixed(3) );
 	   xhr.setRequestHeader("rayoriginy", rayOrigin.e(2).toFixed(3) );
 	   xhr.setRequestHeader("rayoriginz", rayOrigin.e(3).toFixed(3) );
@@ -969,7 +984,18 @@ var PointStream = (function() {
 	   xhr.setRequestHeader("raydiry", rayDir.e(2).toFixed(3) );
 	   xhr.setRequestHeader("raydirz", rayDir.e(3).toFixed(3) );
 
-	   xhr.send();
+	   xhr.send(null);
+
+       var strPickedPoint = xhr.responseText;
+       
+       // didn't find any good picked point
+       if (strPickedPoint.indexOf('0,0,0') >= 0) {
+         return null;
+       }
+       else  {
+         var pp = strPickedPoint.split(','); 
+         return pp;
+       }
 	}
 
     this.upload = function (pointCloud, cloudName) {

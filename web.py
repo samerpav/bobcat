@@ -125,7 +125,7 @@ class QueryPickPoint(Resource):
        data = s.recv(1024)
        s.close()
 
-       responseData = repr(data)
+       responseData = repr(data).replace('\'','') # need to get rid of single quotes returned from octree backend
        pprint(responseData)
        request.write(responseData)
 

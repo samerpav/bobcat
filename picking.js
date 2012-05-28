@@ -49,8 +49,6 @@ function mouseReleased(){
 }
 
 function mouseDblClick() {
-	console.log( 'picking' );
-
     var winX = ps.mouseX;
 	var winY = ps.mouseY - 50; // offsetTop
 
@@ -77,22 +75,60 @@ function mouseDblClick() {
     // Ray start
     var result1 = gluUnProject( winX, winY, 0.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos);
     var RayStart = Vector.create( [-objPos[0], objPos[2], objPos[1]] ); // inverse because our default is Z-up
-    console.log('Ray start: ' + objPos + ' (result:' + result1 + ')');
+    //console.log('Ray start: ' + objPos + ' (result:' + result1 + ')');
 
     // Ray end
     var result2 = gluUnProject( winX, winY, 1.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos); 
     var RayEnd = Vector.create( [-objPos[0], objPos[2], objPos[1]] );// inverse because our default is Z-up
 	//console.log('Ray end: ' + objPos + ' (result:' + result2 + ')','\n');
-	console.dir( RayEnd.toUnitVector().inspect() );
+	//console.dir( RayEnd.toUnitVector().inspect() );
 
 	var RayDir = RayEnd.toUnitVector();
 
 	ps.PickRayStart = RayStart.dup();
 	ps.PickRayEnd = RayEnd.dup();
 
-    ps.findPickPoint(RayStart, RayDir);
+	var pp = ps.findPickPoint(RayStart, RayDir);
 
 	isInPickMode = !isInPickMode;
+
+	console.log('pp = ', pp);
+
+	if (pp == null) return;
+
+    var numVerts = pickedpoint.attributes.ps_Vertex[0].length;
+
+    // we use interleaved array to reduce number of Draw calls from 2 to 1
+    var elementSize = 4 * Float32Array.BYTES_PER_ELEMENT + 
+    			 4 * Uint8Array.BYTES_PER_ELEMENT;
+    
+    var coordOffset = elementSize / Float32Array.BYTES_PER_ELEMENT;
+    var colorOffset = elementSize / Uint8Array.BYTES_PER_ELEMENT
+    
+    // each vertex uses 20 bytes
+    // coords has x y z and intensity. each is float32.
+    
+    // get typed array from current vertex array
+    var buf = pickedpoint.attributes['ps_Vertex'][0].array;
+    
+    // map coordinates and colors to the typed array
+    var coords = new Float32Array(buf);
+    var colors = new Uint8Array(buf, 4 * Float32Array.BYTES_PER_ELEMENT)	
+    
+    for (var j=0; j<numVerts; j++) {
+       coords[0+j*coordOffset] = parseFloat(pp[0]).toFixed(3);
+       coords[1+j*coordOffset] = parseFloat(pp[1]).toFixed(3);
+       coords[2+j*coordOffset] = parseFloat(pp[2]).toFixed(3);
+       
+       colors[0+j*colorOffset] = 255;
+       colors[1+j*colorOffset] = 0;
+       colors[2+j*colorOffset] = 0;
+    }
+    
+    pickedpoint.attributes['ps_Vertex'][0].array = buf;
+    
+    ps.reBindBufferObject(pickedpoint);
+
 }
 
 
@@ -115,40 +151,6 @@ function keyDown(){
 
   // 'a' - for testing
   if (ps.key == 97) {
-
-   var numVerts = lion.attributes.ps_Vertex[0].length;
-   console.log('numVerts = ', numVerts);
-
-   // we use interleaved array to reduce number of Draw calls from 2 to 1
-   var elementSize = 4 * Float32Array.BYTES_PER_ELEMENT + 
-                     4 * Uint8Array.BYTES_PER_ELEMENT;
-
-   var coordOffset = elementSize / Float32Array.BYTES_PER_ELEMENT;
-   var colorOffset = elementSize / Uint8Array.BYTES_PER_ELEMENT
-
-   // each vertex uses 20 bytes
-   // coords has x y z and intensity. each is float32.
-
-   // get typed array from current vertex array
-   var buf = lion.attributes['ps_Vertex'][0].array;
-
-   // map coordinates and colors to the typed array
-   var coords = new Float32Array(buf);
-   var colors = new Uint8Array(buf, 4 * Float32Array.BYTES_PER_ELEMENT)	
-
-   for (var j=0; j<numVerts; j++) {
-     coords[0+j*coordOffset] = coords[0+j*coordOffset] + 1;
-     //coords[1+j*coordOffset] = coords[1+j*coordOffset] + 1;
-     //coords[2+j*coordOffset] = coords[2+j*coordOffset] + 1;
-
-     //colors[0+j*colorOffset] = 255;
-     //colors[1+j*colorOffset] = 255;
-     //colors[2+j*colorOffset] = 255;
-   }
-
-   lion.attributes['ps_Vertex'][0].array = buf;
-
-   ps.reBindBufferObject(lion);
   }
 
   // 0 - zoom to fit
@@ -374,13 +376,10 @@ function render() {
   ps.clear();
   ps.render(lion);
 
-  //ps.useProgram(pickedPointObj);
-  //var c = pickedpoint.getCenter();
-  //ps.multMatrix(M4x4.makeLookAt(cam.position, cam.direction, cam.up));
-  //ps.translate(-cam.position[0]-c[0], -cam.position[1]-c[1], -cam.position[2]-c[2]);
-  //ps.pointSize(5);
-  //ps.render(pickedpoint);
-  //debugger;
+  if (pickedpoint) {
+    ps.pointSize(1);
+    ps.render(pickedpoint);
+  }
 
   NeedRender = false;
 
@@ -423,35 +422,6 @@ function start(){
 
 }
 
-var vsTest = 
-"varying vec4 frontColor;" +
-"attribute vec3 ps_Vertex;" +
-"attribute vec4 ps_Color;" +
-"uniform float ps_PointSize;" +
-"uniform vec3 ps_Attenuation;" +
-"uniform mat4 ps_ModelViewMatrix;" +
-"uniform mat4 ps_ProjectionMatrix;" +
-
-"void main(void){" +
-"  frontColor = ps_Color;" +
-"  vec4 ecPos4 = ps_ModelViewMatrix * vec4(ps_Vertex, 1.0);" +
-"  float dist = length(ecPos4);" +
-"  float attn = ps_Attenuation[0] +" +
-"              (ps_Attenuation[1] * dist) +"+
-"              (ps_Attenuation[2] * dist * dist);" +
-"  gl_PointSize = (attn > 0.0) ? ps_PointSize * sqrt(1.0/attn) : 1.0;"+
-"  gl_Position = ps_ProjectionMatrix * ecPos4;" + 
-"}";
-
-    var fsTest =
-    "#ifdef GL_ES                 \n" +
-    "  precision highp float;     \n" +
-    "#endif                       \n" +
-    "varying vec4 frontColor;      " + 
-    "void main(void){              " + 
-    "  gl_FragColor = frontColor;  " + 
-    "}";
-
 // entry point for loading .pointcloud on server
 function startServer(){
   ps = new PointStream();
@@ -475,8 +445,6 @@ function startServer(){
   ps.PickRayStart = Vector.create( [0, 0, 0] );
   ps.PickRayEnd = Vector.create( [0, 0, 0] );
   ps.RenderMode = 0;
-
-  //pickedPointObj = ps.createProgram(vsTest, fsTest);
 
   lion = ps.load('testcloud.pointcloud');
   pickedpoint = ps.load('dummy.pointcloud');
