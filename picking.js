@@ -245,7 +245,9 @@ function keyDown(){
   }
 }
 
-function Upload() { ps.upload(lion, 'dummy'); }
+function Upload() { 
+	ps.upload(lion, lion.cloudName);
+}
 
 /**
  * Port of gluUnProject. Unprojects a 2D screen coordinate into the model-view
@@ -448,7 +450,7 @@ function startServer(){
   ps.PickRayEnd = Vector.create( [0, 0, 0] );
   ps.RenderMode = 0;
 
-  lion = ps.load('testcloud.pointcloud');
+  lion = ps.load('tree-63k-z.pts.pointcloud');
   pickedpoint = ps.load('dummy.pointcloud');
 
 }

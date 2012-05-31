@@ -46,11 +46,8 @@ class Load(Resource):
             numVBO = int(f.readline())
 
         if numVBO > 0:
-            # get just filename 
-            fileName = cloudName.split('.')[0]
-
-            #self.crap(request, fileName, numVBO)
-            
+            # extract filename 
+            fileName = cloudName[0:cloudName.rfind('.')]
             d = threads.deferToThread(self.crap, request, fileName, numVBO)
             d.addCallback(lambda _: request.finish())
 

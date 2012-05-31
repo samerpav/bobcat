@@ -1000,34 +1000,34 @@ var PointStream = (function() {
 
     this.upload = function (pointCloud, cloudName) {
 
-      // gotta have data before uploading
-      if (pointCloud.attributes['ps_Vertex']) {
- 
-	var arrayOfVBOs = pointCloud.attributes['ps_Vertex'];
+		// gotta have data before uploading
+		if (pointCloud.attributes['ps_Vertex']) {
+		
+		   var arrayOfVBOs = pointCloud.attributes['ps_Vertex'];
+		   
+		   // iterate thru each VBO element; upload each async
+		   for (var i=0; i<arrayOfVBOs.length; i++){
+		      var xhr = new XMLHttpRequest();
+		      xhr.open('POST', '/upload', true);
+		      xhr.onload = function(e) {  };
+		      
+		      // our pointcloud's metadata. I think a lot more are to be added
+		      xhr.setRequestHeader("X-cloudName", cloudName);
+		      xhr.setRequestHeader("X-cloudSequence", i);
+		      xhr.setRequestHeader("X-cloudArrayByteLength", pointCloud.attributes['ps_Vertex'][i].array.byteLength);
+		      xhr.setRequestHeader("X-cloudNumPoints", pointCloud.numPoints);
+		      xhr.send(pointCloud.attributes['ps_Vertex'][i].array);
+		   
+		   } // for
+		   
+		   // finalize upload process
+		   var xhr = new XMLHttpRequest();
+		   xhr.open('POST', '/finalize', true);
+		   xhr.setRequestHeader("X-cloudName", cloudName);
+		   xhr.setRequestHeader("X-cloudTotalSequence", arrayOfVBOs.length);
+		   xhr.send('');
 
-	// iterate thru each VBO element; upload each async
-	for (var i=0; i<arrayOfVBOs.length; i++){
-	   var xhr = new XMLHttpRequest();
-	   xhr.open('POST', '/upload', true);
-	   xhr.onload = function(e) {  };
-
-	   // our pointcloud's metadata. I think a lot more are to be added
-	   xhr.setRequestHeader("X-cloudName", cloudName);
-	   xhr.setRequestHeader("X-cloudSequence", i);
-	   xhr.setRequestHeader("X-cloudArrayByteLength", pointCloud.attributes['ps_Vertex'][i].array.byteLength);
-	   xhr.setRequestHeader("X-cloudNumPoints", pointCloud.numPoints);
-	   xhr.send(pointCloud.attributes['ps_Vertex'][i].array);
-
-	} // for
-
-	// finalize upload process
-	var xhr = new XMLHttpRequest();
-	xhr.open('POST', '/finalize', true);
-	xhr.setRequestHeader("X-cloudName", cloudName);
-	xhr.setRequestHeader("X-cloudTotalSequence", arrayOfVBOs.length);
-	xhr.send('');
-
-      } // check attribute
+		} // check attribute
 
     } // this.upload
 
@@ -1737,7 +1737,7 @@ var PointStream = (function() {
 	// path can be either string or object
 	// if path is string, the data being load is .pointcloud on server
 	// if path is object (ie. File object), load a local file
-	var extension = '';
+	var extension;
 	if (typeof path==='string') {
 	  if (path.indexOf('.pointcloud') > 0)
 	    extension = 'pointcloud';
@@ -1745,7 +1745,7 @@ var PointStream = (function() {
 	else if (typeof path==='object') {
 	  if (path.name.indexOf('.pts') > 0)
 	    extension = 'pts';
-	  else if (path.fileName.indexOf('.ptx') > 0)
+	  else if (path.name.indexOf('.ptx') > 0)
 		extension = 'ptx';
 	}
 
@@ -1758,13 +1758,10 @@ var PointStream = (function() {
                                         parse: parseCallback,
                                         end: loadedCallback});
 
-	// The parser needs to keep track of the file
-	// it is loading since the user may want to
-	// later cancel loading by file path.
-	//parser.cloudName = path;
-	parser.cloudName = 'MyCloudName1';   // will have to change later
+	parser.cloudName = (extension == 'pointcloud') ? path : path.name;
 
 	var newPointCloud = {
+		cloudName: parser.cloudName, 
 		VBOs: [],
 		attributes: {},
 		progress: 0,
