@@ -1,0 +1,31 @@
+<html>
+
+  <head>
+    <link rel="stylesheet" type="text/css" href="/style.css" />
+    <script src="/xbps.js"></script>
+    <script src="/orbitcam.js"></script>
+    <script src="/sylvester.js"></script> 
+    <script src="/glUtils.js"></script> 
+    <script src="/picking.js"></script>
+    <script src="/closure/goog/base.js"></script>
+	<script> goog.require('goog.math.Matrix'); </script>
+  </head>
+
+  <body onload='startServer("<--pointcloud-->");' oncontextmenu="return false;" bgcolor="#222222">
+
+  <!-- <span id="fileStatus"></span><br /> -->
+
+  <div id=btn width=500>
+		  <input type='file' id='fileinput' value='' onchange='start();'>
+		  <button type="button" onclick='Upload();'>Upload</button>
+  </div>
+
+  <div id="progress_bar"><div class="percent">0%</div></div>
+
+  <!-- <div id="gradient-bg"></div> -->
+
+  <canvas id="canvas" width="500" height="500"></canvas><br />
+
+  </body>
+
+</html>

@@ -8,8 +8,9 @@ from twisted.web.static import File
 
 import cPickle
 import time
-
+import os
 import socket
+
 
 def wait(seconds, result=None):
     d = defer.Deferred()
@@ -128,14 +129,46 @@ class QueryPickPoint(Resource):
 
        request.finish()
        return server.NOT_DONE_YET
-       
 
-root = Resource()
-root.putChild('', File("C:\\Users\\mer\\.ssh\\bobcat"))
+class PointCloudListing(Resource):
+    isLeaf = True
+    
+    def getChild(self, name, request):
+        if name == '':
+            return self
+        return resource.Resource.geChild(self, name, request)
+ 
+    def render_GET(self, request):
+        allFiles = os.listdir("c:\\")
+        cloudFiles = [f for f in allFiles if f.find(".pointcloud") > 0]
+
+        s = []
+        for f in cloudFiles:
+            s.append("<a href=\"pointcloud\\" + f + "\">" + f + "</a><br>")
+
+        template = open("index.template", "r")
+        data = template.read().replace("<--pointclouds-->", '\n'.join(s))
+
+        return data
+
+class PointCloud(Resource):
+    isLeaf = True
+
+    def render_GET(self, request):
+        template = open("view.template", "r")
+        cloudName = request.postpath[0]
+        data = template.read().replace("<--pointcloud-->", cloudName )
+        return data
+
+#root = Resource()
+root = File("C:\\Users\\mer\\.ssh\\bobcat")
+
 root.putChild('upload', UploadVBO())
 root.putChild('load', Load())
 root.putChild('findpickpoint', QueryPickPoint())
 root.putChild('finalize', CreatePointCloudFile())
+root.putChild('contentlist', PointCloudListing())
+root.putChild('pointcloud', PointCloud())
 
 factory = Site(root)
 reactor.listenTCP(8080, factory)

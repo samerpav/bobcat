@@ -427,7 +427,7 @@ function start(){
 }
 
 // entry point for loading .pointcloud on server
-function startServer(){
+function startServer(pointcloudFile){
   ps = new PointStream();
   ps.setup(document.getElementById('canvas'));
   ps.background([0.0, 0.0 ,0.0 ,1]);
@@ -450,7 +450,8 @@ function startServer(){
   ps.PickRayEnd = Vector.create( [0, 0, 0] );
   ps.RenderMode = 0;
 
-  lion = ps.load('tree-63k-z.pts.pointcloud');
+  //lion = ps.load('tree-63k-z.pts.pointcloud');
+  lion = ps.load(pointcloudFile);
   pickedpoint = ps.load('dummy.pointcloud');
 
 }
