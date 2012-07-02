@@ -11,7 +11,8 @@
 	<script> goog.require('goog.math.Matrix'); </script>
   </head>
 
-  <body onload='startServer("<--pointcloud-->");' oncontextmenu="return false;" bgcolor="#222222">
+  <!-- <body onload='startServer("<--pointcloud-->");' oncontextmenu="return false;" bgcolor="#222222"> -->
+  <body onload='$entry' oncontextmenu="return false;" bgcolor="#222222">
 
   <!-- <span id="fileStatus"></span><br /> -->
 

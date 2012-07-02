@@ -423,7 +423,6 @@ function start(){
   input = document.getElementById('fileinput');
   selectedFile = input.files[0];
   lion = ps.load(selectedFile);
-
 }
 
 // entry point for loading .pointcloud on server

@@ -5,6 +5,7 @@ from twisted.web import server
 from twisted.web.resource import Resource
 from twisted.internet import reactor, defer, threads
 from twisted.web.static import File
+from string import Template
 
 import cPickle
 import time
@@ -157,11 +158,19 @@ class PointCloud(Resource):
     def render_GET(self, request):
         template = open("view.template", "r")
         cloudName = request.postpath[0]
-        data = template.read().replace("<--pointcloud-->", cloudName )
-        return data
+
+        t = Template(template.read())
+        html = ''
+
+        if cloudName == '':
+            html = t.substitute(entry='return;')
+        else:
+            html = t.substitute(entry='startServer("' + cloudName + '");')
+
+        return html
 
 #root = Resource()
-root = File("C:\\Users\\mer\\.ssh\\bobcat")
+root = File("C:\\Users\\mer\\Documents\\GitHub\\bobcat")
 
 root.putChild('upload', UploadVBO())
 root.putChild('load', Load())
