@@ -1,0 +1,66 @@
+<html>
+
+<head>
+	<link rel="stylesheet" type="text/css" href="/style.css" />
+	<script src="/xbps.js"></script>
+	<script src="/orbitcam.js"></script>
+	<script src="/sylvester.js"></script> 
+	<script src="/glUtils.js"></script> 
+	<script src="/picking.js"></script>
+	<script src="/closure/goog/base.js"></script>
+	<script> goog.require('goog.math.Matrix'); </script>
+</head>
+
+<body onload='$entry' bgcolor="#222222">
+	<!-- <body onload='$entry' oncontextmenu="return false;" bgcolor="#222222"> -->
+
+	<!-- <span id="fileStatus"></span><br /> -->
+
+	<div id=btn width=500>
+		<input type='file' id='fileinput' value='' onchange='start();'>
+		<button type="button" onclick='Upload();'>Upload</button>
+	</div>
+
+	<div id="progress_bar"><div class="percent">0%</div></div>
+
+	<!-- <div id="gradient-bg"></div> -->
+
+	<div id="dnd" style="background-color:#FFFFFF;border:3px solid red;">
+		<canvas id="canvas2"  width="1000" height="600" style="border:3px solid blue;"></canvas><br />
+	</div>
+
+	<canvas id="canvas" width="500" height="500"></canvas><br />
+
+	<script type="text/javascript">
+		var dropbox;  
+
+		dropbox = document.getElementById("canvas2");  
+		dropbox.addEventListener("dragenter", dragenter, false);  
+		dropbox.addEventListener("dragover", dragover, false);  
+		dropbox.addEventListener("drop", drop, false);  
+
+		function dragenter(e) {  
+			console.log('dragenter');
+			e.stopPropagation();  
+			e.preventDefault();  
+		}  
+		  
+		function dragover(e) {  
+			console.log('dragover');
+			e.stopPropagation();  
+			e.preventDefault();  
+		}  
+
+		function drop(e) {  
+			console.log('drop');
+			e.stopPropagation();  
+			e.preventDefault();  
+			var dt = e.dataTransfer;  
+			var files = dt.files;  
+			start(files[0]);  
+		}  
+	</script>
+
+</body>
+
+</html>

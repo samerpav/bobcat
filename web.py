@@ -156,7 +156,7 @@ class PointCloud(Resource):
     isLeaf = True
 
     def render_GET(self, request):
-        template = open("view.template", "r")
+        template = open("view.html", "r")
         cloudName = request.postpath[0]
 
         t = Template(template.read())

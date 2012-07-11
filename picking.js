@@ -23,11 +23,11 @@ const KEY_ESC = 27;
 function zoom(amt){
   if(amt < 0){
     cam.goCloser(-amt*0.5);
-	NeedRender = true;
+    NeedRender = true;
   }
   else{
     cam.goFarther(amt*0.5);
-	NeedRender = true;
+    NeedRender = true;
   }
 }
 
@@ -36,10 +36,10 @@ function mousePressed(RightClick){
   rotationStartCoords[1] = ps.mouseY;
 
   if (RightClick) {
-	isRightDragging = true;
+    isRightDragging = true;
   }
   else {
-  	isDragging = true;
+    isDragging = true;
   }
 }
 
@@ -50,7 +50,7 @@ function mouseReleased(){
 
 function mouseDblClick() {
     var winX = ps.mouseX;
-	var winY = ps.mouseY - 50; // offsetTop
+    var winY = ps.mouseY - 50; // offsetTop
 
     var viewPort = [0, 0, ps.width, ps.height];
     var objPos = [];  
@@ -62,47 +62,47 @@ function mouseDblClick() {
             [ last_matrix[2], last_matrix[6], last_matrix[10], last_matrix[14] ],
             [ last_matrix[3], last_matrix[7], last_matrix[11], last_matrix[15] ]
                                               ]);
-	
+    
     // The perspective matrix is the result of gluPerspective.
-	var pMatrix = ps.pMatrix();
+    var pMatrix = ps.pMatrix();
     var perspectiveMatrix = new goog.math.Matrix([
             [ pMatrix[0], pMatrix[4], pMatrix[8], pMatrix[12] ],
             [ pMatrix[1], pMatrix[5], pMatrix[9], pMatrix[13] ],
             [ pMatrix[2], pMatrix[6], pMatrix[10], pMatrix[14] ],
             [ pMatrix[3], pMatrix[7], pMatrix[11], pMatrix[15] ]
-					]);
+                    ]);
 
     // Ray start
     var result1 = gluUnProject( winX, winY, 0.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos);
     var RayStart = Vector.create( [-objPos[0], objPos[2], objPos[1]] ); // inverse because our default is Z-up
-	console.log('Ray start: ' + objPos + ' (result:' + result1 + ')');
+    console.log('Ray start: ' + objPos + ' (result:' + result1 + ')');
 
     // Ray end
     var result2 = gluUnProject( winX, winY, 1.0, modelViewMatrix, perspectiveMatrix, viewPort, objPos); 
     var RayEnd = Vector.create( [-objPos[0], objPos[2], objPos[1]] );// inverse because our default is Z-up
-	console.log('Ray end: ' + objPos + ' (result:' + result2 + ')','\n');
-	//console.dir( RayEnd.toUnitVector().inspect() );
+    console.log('Ray end: ' + objPos + ' (result:' + result2 + ')','\n');
+    //console.dir( RayEnd.toUnitVector().inspect() );
 
-	var RayDir = RayEnd.toUnitVector();
+    var RayDir = RayEnd.toUnitVector();
 
-	/*
-	 *   un-comment these 2 lines to show pick ray
-	 */
-	//ps.PickRayStart = RayStart.dup();
-	//ps.PickRayEnd = RayEnd.dup();
+    /*
+     *   un-comment these 2 lines to show pick ray
+     */
+    //ps.PickRayStart = RayStart.dup();
+    //ps.PickRayEnd = RayEnd.dup();
 
-	isInPickMode = !isInPickMode;
+    isInPickMode = !isInPickMode;
 
-	var pp = ps.findPickPoint(RayStart, RayDir);
-	console.log('pp = ', pp);
+    var pp = ps.findPickPoint(RayStart, RayDir);
+    console.log('pp = ', pp);
 
-	if (pp == null) return;
+    if (pp == null) return;
 
     var numVerts = pickedpoint.attributes.ps_Vertex[0].length;
 
     // we use interleaved array to reduce number of Draw calls from 2 to 1
     var elementSize = 4 * Float32Array.BYTES_PER_ELEMENT + 
-    			 4 * Uint8Array.BYTES_PER_ELEMENT;
+                 4 * Uint8Array.BYTES_PER_ELEMENT;
     
     var coordOffset = elementSize / Float32Array.BYTES_PER_ELEMENT;
     var colorOffset = elementSize / Uint8Array.BYTES_PER_ELEMENT
@@ -115,7 +115,7 @@ function mouseDblClick() {
     
     // map coordinates and colors to the typed array
     var coords = new Float32Array(buf);
-    var colors = new Uint8Array(buf, 4 * Float32Array.BYTES_PER_ELEMENT)	
+    var colors = new Uint8Array(buf, 4 * Float32Array.BYTES_PER_ELEMENT)    
     
     for (var j=0; j<numVerts; j++) {
        coords[0+j*coordOffset] = parseFloat(pp[0]).toFixed(3);
@@ -143,10 +143,10 @@ function keyDown(){
 
   // s - screenshot
   if (ps.key == 115) {
-	var s = ps.getPNG();
-	window.open(s, 'snapshot');
-	console.log('snapshot..');
-	return;
+    var s = ps.getPNG();
+    window.open(s, 'snapshot');
+    console.log('snapshot..');
+    return;
   }
 
   NeedRender = true;
@@ -163,8 +163,8 @@ function keyDown(){
 
      var distance_to_center = lion.radius/Math.sin(half_min_fov_in_radians);
 
-	 // needed minus to prevent view invertion!
-	 var zoomFitCamPos = V3.scale([0,-1,0], -distance_to_center); 
+     // needed minus to prevent view invertion!
+     var zoomFitCamPos = V3.scale([0,-1,0], -distance_to_center); 
 
      // need to do this in 2 steps. first call aligns to Z then align to Up
      cam.setPosition([0, 0, -1]);
@@ -176,11 +176,11 @@ function keyDown(){
   
   // p
   if (ps.key == 112) {
-	ps.pointSize(0.2);		// must set pointSize BEFORE calling ps.perspective!
-	isOrthoMode=false; 
-	ps.perspective();
-	ps.scale(1,1,1);
-	//ps.attenuation(0, 0, 0); // don't think we need this 
+    ps.pointSize(0.2);      // must set pointSize BEFORE calling ps.perspective!
+    isOrthoMode=false; 
+    ps.perspective();
+    ps.scale(1,1,1);
+    //ps.attenuation(0, 0, 0); // don't think we need this 
   }
 
   if (ps.key == 49) cam.setPosition( [10, 0, 0] ); // 1
@@ -191,19 +191,19 @@ function keyDown(){
 
   // 6 - for debugging
   if (ps.key == 54) { 
-	//console.log(lion.boundingBoxMin[0].toFixed(2) + ' ' + lion.boundingBoxMin[1].toFixed(2) + ' ' + lion.boundingBoxMin[2].toFixed(2));
-	//console.log(lion.boundingBoxMax[0].toFixed(2) + ' ' + lion.boundingBoxMax[1].toFixed(2) + ' ' + lion.boundingBoxMax[2].toFixed(2));
-	console.log(cam.getMatrix().slice(0,4));
-	console.log(cam.getMatrix().slice(4,8));
-	console.log(cam.getMatrix().slice(8,12));
-	console.log(cam.getMatrix().slice(12,16));
-	//console.log('radius = ' + lion.radius);
-	console.log('cam.position = ' + cam.position[0].toFixed(2) + ' ' 
-								  + cam.position[1].toFixed(2) + ' ' 
-								  + cam.position[2].toFixed(2) );
-	console.log('cam.distance = ' + cam.distance.toFixed(2));
-	//var oc = lion.getOriginalCenter();0
-	//console.log('orig center = ' + oc[0] + ' ' + oc[1]+ ' ' + oc[2]); 
+    //console.log(lion.boundingBoxMin[0].toFixed(2) + ' ' + lion.boundingBoxMin[1].toFixed(2) + ' ' + lion.boundingBoxMin[2].toFixed(2));
+    //console.log(lion.boundingBoxMax[0].toFixed(2) + ' ' + lion.boundingBoxMax[1].toFixed(2) + ' ' + lion.boundingBoxMax[2].toFixed(2));
+    console.log(cam.getMatrix().slice(0,4));
+    console.log(cam.getMatrix().slice(4,8));
+    console.log(cam.getMatrix().slice(8,12));
+    console.log(cam.getMatrix().slice(12,16));
+    //console.log('radius = ' + lion.radius);
+    console.log('cam.position = ' + cam.position[0].toFixed(2) + ' ' 
+                                  + cam.position[1].toFixed(2) + ' ' 
+                                  + cam.position[2].toFixed(2) );
+    console.log('cam.distance = ' + cam.distance.toFixed(2));
+    //var oc = lion.getOriginalCenter();0
+    //console.log('orig center = ' + oc[0] + ' ' + oc[1]+ ' ' + oc[2]); 
     var c = lion.getCenter();
     console.log('current center = ' + c[0].toFixed(2) + ' ' + c[1].toFixed(2) + ' ' + c[2].toFixed(2)  );
   }
@@ -212,41 +212,41 @@ function keyDown(){
   // 7
   // switch between Z-up and Y-up
   if (ps.key == 55) {
-	if (ps.UpAxisMatrix[5]==1) {
-	  console.log('z-up');
-	  ps.UpAxisMatrix = M4x4.$(-1, 0, 0, 0, 
-						        0, 0, 1, 0, 
+    if (ps.UpAxisMatrix[5]==1) {
+      console.log('z-up');
+      ps.UpAxisMatrix = M4x4.$(-1, 0, 0, 0, 
+                                0, 0, 1, 0, 
                                 0, 1, 0, 0, 
                                 0, 0, 0, 1);
 
-	  // the transformation matrix requires that
-	  // we swap center-Y and center-Z 
-	  // otherwise, the camera won't point in the correct direction
+      // the transformation matrix requires that
+      // we swap center-Y and center-Z 
+      // otherwise, the camera won't point in the correct direction
       lion.setCenter([-lion.originalCenter[0], lion.originalCenter[2], lion.originalCenter[1]]);
-	}
-	else {
-	  console.log('y-up');
-	  ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
+    }
+    else {
+      console.log('y-up');
+      ps.UpAxisMatrix = M4x4.$(1, 0, 0, 0, 
                                0, 1, 0, 0, 
                                0, 0, 1, 0, 
                                0, 0, 0, 1);
 
-	  // revert center back to its original value
+      // revert center back to its original value
       lion.setCenter([lion.originalCenter[0], lion.originalCenter[1], lion.originalCenter[2]]);
-	}
+    }
   } // 7
 
   // back slash \
   if (ps.key == 92) {
-	if (ps.RenderMode < 2)
-	  ps.RenderMode++;
+    if (ps.RenderMode < 2)
+      ps.RenderMode++;
     else
       ps.RenderMode = 0;
   }
 }
 
 function Upload() { 
-	ps.upload(lion, lion.cloudName);
+    ps.upload(lion, lion.cloudName);
 }
 
 /**
@@ -307,63 +307,63 @@ function gluUnProject(winX, winY, winZ,
 function render() {
 
   if (isInPickMode===true) {
-	NeedRender = true;
-	isInPickMode = false;
+    NeedRender = true;
+    isInPickMode = false;
   }
 
-  if (isDragging === true){		
-	var deltaX = ps.mouseX - rotationStartCoords[0];
-	var deltaY = ps.mouseY - rotationStartCoords[1];
-	rotationStartCoords = [ps.mouseX, ps.mouseY];
+  if (isDragging === true){     
+    var deltaX = ps.mouseX - rotationStartCoords[0];
+    var deltaY = ps.mouseY - rotationStartCoords[1];
+    rotationStartCoords = [ps.mouseX, ps.mouseY];
 
-	cam.yaw(-deltaX * 0.003); 
-	cam.pitch(deltaY * 0.003);
+    cam.yaw(-deltaX * 0.003); 
+    cam.pitch(deltaY * 0.003);
 
-	NeedRender = true;
+    NeedRender = true;
 
   } // if-isDragging
 
   if (isRightDragging === true) {
-	var offsetX = ps.mouseX - rotationStartCoords[0];
-	var offsetY = ps.mouseY - rotationStartCoords[1];
-	rotationStartCoords = [ps.mouseX, ps.mouseY];
+    var offsetX = ps.mouseX - rotationStartCoords[0];
+    var offsetY = ps.mouseY - rotationStartCoords[1];
+    rotationStartCoords = [ps.mouseX, ps.mouseY];
 
-	if ((offsetX != 0) || (offsetY !=0)) {
-	  	HPanning = V3.cross(cam.direction, up);
+    if ((offsetX != 0) || (offsetY !=0)) {
+        HPanning = V3.cross(cam.direction, up);
 
-		// finally i fixed the damn gimbal lock problem with these 4 lines!!
-		if (V3.length(HPanning).toFixed(2)==0) {
-		  var camLeft = cam.getMatrix();
-	  	  HPanning = V3.$(-camLeft[0], camLeft[1], -camLeft[2]);
-		}
+        // finally i fixed the damn gimbal lock problem with these 4 lines!!
+        if (V3.length(HPanning).toFixed(2)==0) {
+          var camLeft = cam.getMatrix();
+          HPanning = V3.$(-camLeft[0], camLeft[1], -camLeft[2]);
+        }
 
-	  	VPanning = V3.cross(cam.direction, HPanning);
+        VPanning = V3.cross(cam.direction, HPanning);
 
-	  var newPos = V3.add(lion.getCenter(), V3.scale(HPanning, -offsetX/30));
-	  newPos = V3.add(newPos, V3.scale(VPanning, -offsetY/30)); 
-	  
-	  lion.setCenter([newPos[0], newPos[1], newPos[2]]);
+      var newPos = V3.add(lion.getCenter(), V3.scale(HPanning, -offsetX/30));
+      newPos = V3.add(newPos, V3.scale(VPanning, -offsetY/30)); 
+      
+      lion.setCenter([newPos[0], newPos[1], newPos[2]]);
 
-	  NeedRender = true;
-	}	
+      NeedRender = true;
+    }   
   } // if-isRightDragging
 
 
   if (isOrthoMode===true) {
-  	ps.ortho();
-	var dist = cam.distance;
-	var sc = 400; // magic number... may be aspect-ratio specific
-	var scaleFactor = 1/dist*sc;
-  	ps.scale(scaleFactor, scaleFactor, scaleFactor);
-	NeedRender = true;
-	
-	//
-	// don't think I need any of this crap
-	//
-	//var c = cam.position;
+    ps.ortho();
+    var dist = cam.distance;
+    var sc = 400; // magic number... may be aspect-ratio specific
+    var scaleFactor = 1/dist*sc;
+    ps.scale(scaleFactor, scaleFactor, scaleFactor);
+    NeedRender = true;
+    
+    //
+    // don't think I need any of this crap
+    //
+    //var c = cam.position;
     //cam.setPosition( V3.scale(c, 1/30) );
-	//ps.attenuation(10, 0, 0); // don't think we need this
-  	//ps.pointSize(5);
+    //ps.attenuation(10, 0, 0); // don't think we need this
+    //ps.pointSize(5);
   }
 
   if (lion.progress < 100) NeedRender = true;
@@ -390,67 +390,75 @@ function render() {
 } // render
 
 // entry point for loading local file on client
-function start(){
-  ps = new PointStream();
-  ps.setup(document.getElementById('canvas'));
+function start(_ddFile){
+    ps = new PointStream();
+    ps.setup(document.getElementById('canvas'));
 
-  //
-  //    currently we use linear gradient background
-  //    to use solid color background, uncomment the following line
-  //
-  ps.background([0.0, 0.0 ,0.0 ,1]);
+    //
+    //    currently we use linear gradient background
+    //    to use solid color background, uncomment the following line
+    //
+    ps.background([0.0, 0.0 ,0.0 ,1]);
 
-  ps.pointSize(0.2);
-  ps.resize(window.innerWidth-100, window.innerHeight-100, "{preserveDrawingBuffer: true}");
-  ps.onRender = render;
-  ps.onMouseScroll = zoom;
-  ps.onMousePressed = mousePressed;
-  ps.onMouseReleased = mouseReleased;
-  ps.onMouseDblClick = mouseDblClick;
-  ps.onKeyDown = keyDown;
+    ps.pointSize(0.2);
+    ps.resize(window.innerWidth-100, window.innerHeight-100, "{preserveDrawingBuffer: true}");
+    ps.onRender = render;
+    ps.onMouseScroll = zoom;
+    ps.onMousePressed = mousePressed;
+    ps.onMouseReleased = mouseReleased;
+    ps.onMouseDblClick = mouseDblClick;
+    ps.onKeyDown = keyDown;
 
-  var last_matrix;
+    var last_matrix;
 
-  // default up axis is Z
-  ps.UpAxisMatrix = M4x4.$(-1, 0, 0, 0, 
+    // default up axis is Z
+    ps.UpAxisMatrix = M4x4.$(-1, 0, 0, 0, 
                             0, 0, 1, 0, 
                             0, 1, 0, 0, 
                             0, 0, 0, 1);
-  ps.PickRayStart = Vector.create( [0, 0, 0] );
-  ps.PickRayEnd = Vector.create( [0, 0, 0] );
-  ps.RenderMode = 0;
+    ps.PickRayStart = Vector.create( [0, 0, 0] );
+    ps.PickRayEnd = Vector.create( [0, 0, 0] );
+    ps.RenderMode = 0;
 
-  input = document.getElementById('fileinput');
-  selectedFile = input.files[0];
-  lion = ps.load(selectedFile);
+    var selectedFile;
+
+    if (_ddFile) {
+        selectedFile = _ddFile;
+    }
+    else {
+        input = document.getElementById('fileinput');
+        selectedFile = input.files[0];
+    }
+
+    //alert(selectedFile);
+    lion = ps.load(selectedFile);
 }
 
 // entry point for loading .pointcloud on server
 function startServer(pointcloudFile){
-  ps = new PointStream();
-  ps.setup(document.getElementById('canvas'));
-  ps.background([0.0, 0.0 ,0.0 ,1]);
-  ps.pointSize(0.2);
+    ps = new PointStream();
+    ps.setup(document.getElementById('canvas'));
+    ps.background([0.0, 0.0 ,0.0 ,1]);
+    ps.pointSize(0.2);
 
-  ps.resize(window.innerWidth-100, window.innerHeight-100);
-  ps.onRender = render;
-  ps.onMouseScroll = zoom;
-  ps.onMousePressed = mousePressed;
-  ps.onMouseReleased = mouseReleased;
-  ps.onMouseDblClick = mouseDblClick;
-  ps.onKeyDown = keyDown;
-  
-  // default up axis is Z
-  ps.UpAxisMatrix = M4x4.$(-1, 0, 0, 0, 
+    ps.resize(window.innerWidth-100, window.innerHeight-100);
+    ps.onRender = render;
+    ps.onMouseScroll = zoom;
+    ps.onMousePressed = mousePressed;
+    ps.onMouseReleased = mouseReleased;
+    ps.onMouseDblClick = mouseDblClick;
+    ps.onKeyDown = keyDown;
+
+    // default up axis is Z
+    ps.UpAxisMatrix = M4x4.$(-1, 0, 0, 0, 
                            0, 0, 1, 0, 
                            0, 1, 0, 0, 
                            0, 0, 0, 1);
-  ps.PickRayStart = Vector.create( [0, 0, 0] );
-  ps.PickRayEnd = Vector.create( [0, 0, 0] );
-  ps.RenderMode = 0;
+    ps.PickRayStart = Vector.create( [0, 0, 0] );
+    ps.PickRayEnd = Vector.create( [0, 0, 0] );
+    ps.RenderMode = 0;
 
-  //lion = ps.load('tree-63k-z.pts.pointcloud');
-  lion = ps.load(pointcloudFile);
-  pickedpoint = ps.load('dummy.pointcloud');
-
+    //lion = ps.load('tree-63k-z.pts.pointcloud');
+    lion = ps.load(pointcloudFile);
+    pickedpoint = ps.load('dummy.pointcloud');
 }

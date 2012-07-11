@@ -9,6 +9,13 @@ body {
 	z-index:2;
 }
 
+#dnd{
+	display:block;
+	border: none;
+	position:absolute;
+	top:50px;
+	z-index:1;
+}
 #canvas{
 	display:block;
 	border: none;
