@@ -23,18 +23,14 @@
 
 	<div id="progress_bar"><div class="percent">0%</div></div>
 
-	<!-- <div id="gradient-bg"></div> -->
+	<div id="gradient-bg"></div>
 
-	<div id="dnd" style="background-color:#FFFFFF;border:3px solid red;">
-		<canvas id="canvas2"  width="1000" height="600" style="border:3px solid blue;"></canvas><br />
-	</div>
-
-	<canvas id="canvas" width="500" height="500"></canvas><br />
+	<canvas id="canvas" width="1500" height="800"></canvas><br /> 
 
 	<script type="text/javascript">
-		var dropbox;  
 
-		dropbox = document.getElementById("canvas2");  
+		var dropbox;  
+		dropbox = document.getElementById("canvas");  
 		dropbox.addEventListener("dragenter", dragenter, false);  
 		dropbox.addEventListener("dragover", dragover, false);  
 		dropbox.addEventListener("drop", drop, false);  
@@ -53,11 +49,11 @@
 
 		function drop(e) {  
 			console.log('drop');
-			e.stopPropagation();  
-			e.preventDefault();  
 			var dt = e.dataTransfer;  
 			var files = dt.files;  
 			start(files[0]);  
+			e.stopPropagation();  
+			e.preventDefault();  
 		}  
 	</script>
 
